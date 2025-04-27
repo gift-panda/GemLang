@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.interpreter.gem.*;
+import com.interpreter.gem.Scanner;
 
 public class Gem {
 	static boolean hadError = false;
@@ -36,8 +36,8 @@ public class Gem {
 		InputStreamReader input = new InputStreamReader(System.in);
 		BufferedReader reader = new BufferedReader(input);
 
-		for (; ; ) {
-			System.out.println("> ");
+		for (;;) {
+			System.out.print("> ");
 			String line = reader.readLine();
 			if (line == null) break;
 			run(line);
@@ -49,9 +49,16 @@ public class Gem {
 		Scanner sc = new Scanner(source);
 		List<Token> tokens = sc.scanTokens();
 
-		for (Token token : tokens) {
-			System.out.println(token);
-		}
+		//System.out.println(tokens);
+		//System.exit(0);
+
+		Parser parser = new Parser(tokens);
+		Expr expression = parser.parse();
+
+		// Stop if there was a syntax error.
+		if (hadError) return;
+
+		System.out.println(new AstPrinter().print(expression));
 	}
 
 	static void error(int line, String message) {
@@ -61,6 +68,14 @@ public class Gem {
 	private static void report(int line, String where, String message) {
 		System.err.println("[Line " + line + "] Error" + where + ": " + message);
 		hadError = true;
+	}
+
+	static void error(Token token, String message) {
+		if (token.type == TokenType.EOF) {
+			report(token.line, " at end", message);
+		} else {
+			report(token.line, " at '" + token.lexeme + "'", message);
+		}
 	}
 }
 
