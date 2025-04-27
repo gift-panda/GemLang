@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.interpreter.gem.TokenType.*; 
+import static com.interpreter.gem.TokenType.*;
 
 class Scanner {
 	private final String source;
   	private final List<Token> tokens = new ArrayList<>();
 	private int start = 0;
-	private current = 0;
+	private int current = 0;
 	private int line = 1;
 	private static final Map<String, TokenType> keywords;
 
@@ -100,13 +100,13 @@ class Scanner {
 	private void addToken(TokenType type){
 		addToken(type,null);
 	}
-	private void addToken(tokenType type, Object Literal){
+	private void addToken(TokenType type, Object literal){
 		String text = source.substring(start, current);
-		tokens.add(new Token(type, text, literal, line);
+		tokens.add(new Token(type, text, literal, line));
 	}
 	private boolean match(char expected){
 		if(isAtEnd()) return false;
-		if(souce.charAt(current) != expected) return false;
+		if(source.charAt(current) != expected) return false;
 
 		current++;
 		return true;
@@ -129,7 +129,7 @@ class Scanner {
 		
 		//Unescaping escaping sequences done here!
 		String value = source.substring(start+1, current-1);
-		addtoken(STRING, value);
+		addToken(STRING, value);
 	}
 	private boolean isDigit(char c){
 		return c >= '0' && c <= '9';
