@@ -17,3 +17,7 @@ possibly change to an unrestricted grammer rule (who knows)
 27/4/25
 
 Produces an abstract syntax tree and cn visualize. Variable support will be added later(tomorrow?).
+
+27/4/25
+
+Made the basic interpreter work in accordance with operator precedence and associativity.
