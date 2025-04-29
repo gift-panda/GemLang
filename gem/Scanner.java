@@ -116,9 +116,10 @@ class Scanner {
 		return source.charAt(current);
 	}
 	private void string(){
-		while(peek() != '"' && !isAtEnd())
-			if(peek() == '\n') line++;
-		advance();
+		while(peek() != '"' && !isAtEnd()) {
+			if (peek() == '\n') line++;
+			advance();
+		}
 
 		if(isAtEnd()){
 			Gem.error(line, "Unterminated String.");
