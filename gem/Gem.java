@@ -16,6 +16,7 @@ public class Gem {
 	static boolean hadRuntimeError = false;
 
 	public static void main(String[] args) throws IOException {
+		//args = new String[]{"/home/meow/com/interpreter/gem/sample.gem"};
 		if (args.length > 1) {
 			System.out.println("Usage: jgem [script]");
 			System.exit(64);

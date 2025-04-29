@@ -2,8 +2,8 @@ package com.interpreter.gem;
 
 enum TokenType {
   // Single-character tokens.
-  LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,
-  COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+  LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, BACKSLASH,
+  COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, PERCEN,
 
   // One or two character tokens.
   BANG, BANG_EQUAL,

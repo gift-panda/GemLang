@@ -29,6 +29,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			case MINUS:
 				checkNumberOperands(expr.operator, left, right);
 				return (double)left - (double)right;
+			case PERCEN:
+				checkNumberOperands(expr.operator, left, right);
+				return (double)left % (double)right;
+			case BACKSLASH:
+				checkNumberOperands(expr.operator, left, right);
+				return (double)((int)(double)left / (int)(double)right);
 			case SLASH:
 				checkNumberOperands(expr.operator, left, right);
 				return (double)left / (double)right;
@@ -86,7 +92,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	private Object evaluate(Expr expr){
 	    	return expr.accept(this);
-    	}
+	}
 
 	private boolean isTruthy(Object object){
 		if(object == null) return false;
@@ -199,10 +205,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			if(isTruthy(left)) return left;
 		}
 		else{
-			if(!isTruthy(left) return left;
+			if(!isTruthy(left)) return left;
 		}
 
 		return evaluate(expr.right);
+	}
+
+	@Override
+	public Void visitWhileStmt(Stmt.While stmt){
+		while(isTruthy(evaluate(stmt.condition)))
+			execute(stmt.body);
+		return null;
 	}
 
 	void executeBlock(List<Stmt> statements, Environment environment){

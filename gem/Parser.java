@@ -2,6 +2,7 @@ package com.interpreter.gem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 import static com.interpreter.gem.TokenType.*;
 
@@ -133,7 +134,7 @@ class Parser{
 	private Expr factor() {
 		Expr expr = unary();
 
-		while (match(SLASH, STAR)) {
+		while (match(SLASH, STAR, PERCEN, BACKSLASH)) {
 			Token operator = previous();
 			Expr right = unary();
 			expr = new Expr.Binary(expr, operator, right);
@@ -220,10 +221,63 @@ class Parser{
 	private Stmt statement(){
 		if(match(IF)) return ifStatement();
 		if(match(PRINT)) return printStatement();
+		if(match(WHILE)) return whileStatement();
+		if(match(FOR)) return forStatement();
 		if(match(LEFT_BRACE)) return new Stmt.Block(block());
 		
 
 		return expressionStatement();
+	}
+
+	private Stmt forStatement(){
+		consume(LEFT_PAREN, "Expected '(' after 'for'.");
+
+		Stmt initializer;
+		if(match(SEMICOLON)){
+			initializer = null;
+		}
+		else if(match(VAR)){
+			initializer = varDeclaration();
+		}
+		else{
+			initializer = expressionStatement();
+		}
+
+		Expr condition = null;
+		if(!check(SEMICOLON)){
+			condition = expression();
+		}
+		consume(SEMICOLON, "Expect ';' after loop condition.");
+
+		Expr increment = null;
+		if(!check(RIGHT_PAREN)){
+			increment = expression();
+		}
+		consume(RIGHT_PAREN, "Expect ')' after 'for' clause.");
+
+		Stmt body = statement();
+
+		if(increment != null){
+			body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+		}
+
+		if(condition == null) condition = new Expr.Literal(true);
+		body = new Stmt.While(condition, body);
+
+		if(initializer != null){
+			body = new Stmt.Block(Arrays.asList(initializer, body));
+		}
+
+		return body;
+	}
+
+	private Stmt whileStatement(){
+		consume(LEFT_PAREN, "Expected '(' after 'while'.");
+		Expr condition = expression();
+		consume(RIGHT_PAREN, "Expected ')' after condition.");
+		Stmt body = statement();
+
+		return new Stmt.While(condition, body);
 	}
 	
 	private Stmt ifStatement(){
