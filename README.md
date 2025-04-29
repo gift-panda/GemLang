@@ -21,4 +21,7 @@ Produces an abstract syntax tree and cn visualize. Variable support will be adde
 27/4/25
 
 Made the basic interpreter work in accordance with operator precedence and associativity.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 43cb4d6b36263cf752decd13dfd5437f3cdfc881
