@@ -51,6 +51,21 @@ class AstPrinter implements Expr.Visitor<String>{
 		return "";
 	}
 
+	@Override
+	public String visitGetIndexExpr(Expr.GetIndex getIndex) {
+		return "";
+	}
+
+	@Override
+	public String visitSetIndexExpr(Expr.SetIndex expr) {
+		return "";
+	}
+
+	@Override
+	public String visitListLiteralExpr(Expr.ListLiteral expr) {
+		return "";
+	}
+
 	private String parenthesize(String name, Expr... exprs) {
 		StringBuilder builder = new StringBuilder();
 

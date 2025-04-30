@@ -26,6 +26,12 @@ class Parser{
 			Token equals = previous();
 			Expr value = assignment();
 
+			if (expr instanceof Expr.GetIndex) {
+				Expr.GetIndex getIndex = (Expr.GetIndex) expr;
+				return new Expr.SetIndex(getIndex.object, getIndex.index, value, getIndex.bracket);
+			}
+
+
 			if (expr instanceof Expr.Variable) {
 				Token name = ((Expr.Variable)expr).name;
 				return new Expr.Assign(name, value);
@@ -150,33 +156,24 @@ class Parser{
 			return new Expr.Unary(operator, right);
 		}
 
-		//if(match(LEFT_BRACKET)){
-		//	arrayCall();
-		//}
-
 		return call();
 	}
-
-	/*
-	private Expr arrayCall() {
-		Expr expr = expression();
-
-
-
-		return expr;
-	}*/
 
 	private Expr call(){
 		Expr expr = primary();
 
-		while(true){
-			if(match(LEFT_PAREN)){
+		while (true) {
+			if (match(TokenType.LEFT_PAREN)) {
 				expr = finishCall(expr);
-			}
-			else{
+			} else if (match(TokenType.LEFT_BRACKET)) {
+				Expr index = expression();
+				Token bracket = consume(TokenType.RIGHT_BRACKET, "Expect ']' after index.");
+				expr = new Expr.GetIndex(expr, index, bracket);
+			} else {
 				break;
 			}
 		}
+
 
 		return expr;
 	}
@@ -206,6 +203,18 @@ class Parser{
 		if(match(IDENTIFIER)){
 			return new Expr.Variable(previous());
 		}
+
+		if (match(TokenType.LEFT_BRACKET)) {
+			List<Expr> elements = new ArrayList<>();
+			if (!check(TokenType.RIGHT_BRACKET)) {
+				do {
+					elements.add(expression());
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.RIGHT_BRACKET, "Expect ']' after list.");
+			return new Expr.ListLiteral(elements);
+		}
+
 
 		if (match(LEFT_PAREN)) {
 			Expr expr = expression();
@@ -265,9 +274,21 @@ class Parser{
 		if(match(WHILE)) return whileStatement();
 		if(match(FOR)) return forStatement();
 		if(match(LEFT_BRACE)) return new Stmt.Block(block());
+		if(match(RETURN)) return returnStatement();
 		
 
 		return expressionStatement();
+	}
+
+	private Stmt returnStatement(){
+		Token token = previous();
+		Expr value = null;
+		if(!check(SEMICOLON)){
+			value = expression();
+		}
+
+		consume(SEMICOLON, "Expect ';' after expression.");
+		return new Stmt.Return(token, value);
 	}
 
 	private Stmt forStatement(){

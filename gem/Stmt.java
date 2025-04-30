@@ -10,6 +10,7 @@ abstract class Stmt {
 		R visitPrintStmt(Print stmt);
 		R visitWhileStmt(While stmt);
 		R visitVarStmt(Var stmt);
+		R visitReturnStmt(Return stmt);
 		R visitFunctionStmt(Function stmt);
 	}
   static class Block extends Stmt {
@@ -91,6 +92,20 @@ abstract class Stmt {
 
     final Token name;
     final Expr initializer;
+  }
+  static class Return extends Stmt {
+    Return(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitReturnStmt(this);
+	}
+
+    final Token keyword;
+    final Expr value;
   }
   static class Function extends Stmt {
     Function(Token name, List<Token> params, List<Stmt> body) {

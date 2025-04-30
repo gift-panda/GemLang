@@ -4,18 +4,25 @@ import java.util.List;
 
 class GemFunction implements GemCallable{
 	private final Stmt.Function declaration;
-	GemFunction(Stmt.Function declaration){
+	private final Environment closure;
+
+	GemFunction(Stmt.Function declaration, Environment closure){
 		this.declaration = declaration;
-	}
+        this.closure = closure;
+    }
 
 	@Override
 	public Object call(Interpreter interpreter, List<Object> arguments){
-		Environment environment = new Environment(interpreter.globals);
+		Environment environment = new Environment(closure);
 		for(int i = 0; i < declaration.params.size(); i++){
 			environment.define(declaration.params.get(i).lexeme,arguments.get(i));
 		}
-		
-		interpreter.executeBlock(declaration.body, environment);
+
+		try {
+			interpreter.executeBlock(declaration.body, environment);
+		}catch(Return returnValue){
+			return returnValue.value;
+		}
 		return null;
 	}
 

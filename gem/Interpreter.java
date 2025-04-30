@@ -257,6 +257,38 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return function.call(this, arguments);
 	}
 
+	@Override
+	public Object visitListLiteralExpr(Expr.ListLiteral expr) {
+		GemList list = new GemList();
+		for (Expr elementExpr : expr.elements) {
+			list.add(evaluate(elementExpr));
+		}
+		return list;
+	}
+
+	@Override
+	public Object visitGetIndexExpr(Expr.GetIndex expr) {
+		Object obj = evaluate(expr.object);
+		Object index = evaluate(expr.index);
+		if (obj instanceof GemList && index instanceof Double) {
+			return ((GemList) obj).get(((Double) index).intValue());
+		}
+		throw new RuntimeError(expr.bracket, "Only lists can be indexed.");
+	}
+
+	@Override
+	public Object visitSetIndexExpr(Expr.SetIndex expr) {
+		Object obj = evaluate(expr.object);
+		Object index = evaluate(expr.index);
+		Object value = evaluate(expr.value);
+		if (obj instanceof GemList && index instanceof Double) {
+			((GemList) obj).set(((Double) index).intValue(), value);
+			return value;
+		}
+		throw new RuntimeError(expr.bracket, "Only lists can be assigned by index.");
+	}
+
+
 	void executeBlock(List<Stmt> statements, Environment environment){
 		Environment previous = this.environment;
 		try{
@@ -271,9 +303,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 	}
 	public Void visitFunctionStmt(Stmt.Function stmt){
-		GemFunction function = new GemFunction(stmt);
+		GemFunction function = new GemFunction(stmt, environment);
 		environment.define(stmt.name.lexeme, function);
 		return null;
+	}
+
+	@Override
+	public Void visitReturnStmt(Stmt.Return stmt){
+		Object value = null;
+		if(stmt.value != null){
+			value = evaluate(stmt.value);
+		}
+
+		throw new Return(value);
 	}
 
 }

@@ -12,6 +12,9 @@ abstract class Expr {
 		R visitUnaryExpr(Unary expr);
 		R visitVariableExpr(Variable expr);
 		R visitCallExpr(Call expr);
+		R visitGetIndexExpr(GetIndex expr);
+		R visitSetIndexExpr(SetIndex expr);
+		R visitListLiteralExpr(ListLiteral expr);
 	}
   static class Assign extends Expr {
     Assign(Token name, Expr value) {
@@ -124,6 +127,52 @@ abstract class Expr {
     final Expr callee;
     final Token paren;
     final List<Expr> arguments;
+  }
+  static class GetIndex extends Expr {
+    GetIndex(Expr object, Expr index, Token bracket) {
+      this.object = object;
+      this.index = index;
+      this.bracket = bracket;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitGetIndexExpr(this);
+	}
+
+    final Expr object;
+    final Expr index;
+    final Token bracket;
+  }
+  static class SetIndex extends Expr {
+    SetIndex(Expr object, Expr index, Expr value, Token bracket) {
+      this.object = object;
+      this.index = index;
+      this.value = value;
+      this.bracket = bracket;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitSetIndexExpr(this);
+	}
+
+    final Expr object;
+    final Expr index;
+    final Expr value;
+    final Token bracket;
+  }
+  static class ListLiteral extends Expr {
+    ListLiteral(List<Expr> elements) {
+      this.elements = elements;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitListLiteralExpr(this);
+	}
+
+    final List<Expr> elements;
   }
 
 	abstract <R> R accept(Visitor<R> visitor);
