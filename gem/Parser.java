@@ -150,7 +150,48 @@ class Parser{
 			return new Expr.Unary(operator, right);
 		}
 
-		return primary();
+		//if(match(LEFT_BRACKET)){
+		//	arrayCall();
+		//}
+
+		return call();
+	}
+
+	/*
+	private Expr arrayCall() {
+		Expr expr = expression();
+
+
+
+		return expr;
+	}*/
+
+	private Expr call(){
+		Expr expr = primary();
+
+		while(true){
+			if(match(LEFT_PAREN)){
+				expr = finishCall(expr);
+			}
+			else{
+				break;
+			}
+		}
+
+		return expr;
+	}
+
+	private Expr finishCall(Expr callee){
+		List<Expr> arguments = new ArrayList<>();
+		if(!check(RIGHT_PAREN)){
+			do{
+				arguments.add(expression());
+			}while(match(COMMA));
+		}
+
+		Token paren = consume(RIGHT_PAREN, "Expected ')' after function call.");
+
+		return new Expr.Call(callee, paren, arguments);
 	}
 
 	private Expr primary() {
@@ -319,6 +360,7 @@ class Parser{
 
 	private Stmt declaration(){
 		try{
+			if(match(FUN)) return function("function");
 			if(match(VAR)) return varDeclaration();
 
 			return statement();
@@ -329,7 +371,7 @@ class Parser{
 	}
 
 	private Stmt varDeclaration(){
-		Token name = consume(IDENTIFIER, "Expected variabe name.");
+		Token name = consume(IDENTIFIER, "Expected variable name.");
 
 		Expr initializer = null;
 		if(match(EQUAL)){
@@ -338,6 +380,24 @@ class Parser{
 
 		consume(SEMICOLON, "Excepted ';' after variable declaration.");
 		return new Stmt.Var(name, initializer);
+	}
+
+	private Stmt.Function function(String kind){
+		Token name = consume(IDENTIFIER, "Expected " + kind + " name.");
+
+		consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+		List<Token> parameters = new ArrayList<>();
+		if(!check(RIGHT_PAREN)){
+			do{
+				parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+			}while(match(COMMA));
+		}
+
+		consume(RIGHT_PAREN, "Expected ')' after parameters.");
+
+		consume(LEFT_BRACE, "Expected '{' after " + kind + " body.");
+		List<Stmt> body = block();
+		return new Stmt.Function(name, parameters, body);
 	}
 
 

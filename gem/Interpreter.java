@@ -1,10 +1,27 @@
 package com.interpreter.gem;
 
 import java.util.List;
+import java.util.ArrayList;
 
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
-	private Environment environment = new Environment();
+	final Environment globals = new Environment();
+	private Environment environment = globals;
+
+	Interpreter(){
+		globals.define("clock", new GemCallable(){
+			@Override
+			public int arity(){return 0;}
+
+			@Override public Object call(Interpreter interpreter, List<Object> arguments){
+				return (double)System.currentTimeMillis()/1000.0;
+			}
+
+			@Override
+			public String toString(){return "<native fn>";}
+		});
+	}
+
 
 	@Override
 	public Object visitBinaryExpr(Expr.Binary expr) {
@@ -218,6 +235,28 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return null;
 	}
 
+	@Override
+	public Object visitCallExpr(Expr.Call expr){
+		Object callee = evaluate(expr.callee);
+
+		List<Object> arguments = new ArrayList<>();
+		for(Expr argument : expr.arguments){
+			arguments.add(evaluate(argument));
+		}
+
+		if(!(callee instanceof GemCallable)){
+			throw new RuntimeError(expr.paren, "Can not be called.");
+		}
+
+		GemCallable function = (GemCallable)callee;
+
+		if(arguments.size() != function.arity()){
+			throw new RuntimeError(expr.paren, "Expected "+function.arity()+" arguments, but received "+arguments.size()+".");
+		}
+
+		return function.call(this, arguments);
+	}
+
 	void executeBlock(List<Stmt> statements, Environment environment){
 		Environment previous = this.environment;
 		try{
@@ -230,6 +269,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		finally{
 			this.environment = previous;
 		}
+	}
+	public Void visitFunctionStmt(Stmt.Function stmt){
+		GemFunction function = new GemFunction(stmt);
+		environment.define(stmt.name.lexeme, function);
+		return null;
 	}
 
 }
