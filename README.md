@@ -35,3 +35,7 @@ Added dynamically allocated lists
 1/5/25
 Extended support of python style dynamic reference to strings
 Implemented the GNI(Gem Native Interface)
+
+UNDER NO CIRCUMSTANCES TOUCH THE 'natives' DIRECTORY
+Use: java GemNative <file path of your java file>
+To implement your native functions in gem from java
