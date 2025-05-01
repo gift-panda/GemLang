@@ -27,3 +27,11 @@ Made the basic interpreter work in accordance with operator precedence and assoc
 Added custom environments, environment nestings.
 implemnted environment into variables, implemented nested environments into scopes. 
 implemented blocks on the way.
+
+30/4/25
+Finally implemented functions and their closures
+Added dynamically allocated lists
+
+1/5/25
+Extended support of python style dynamic reference to strings
+Implemented the GNI(Gem Native Interface)
