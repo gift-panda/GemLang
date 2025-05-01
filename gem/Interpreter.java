@@ -1,25 +1,92 @@
 package com.interpreter.gem;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Objects;
 
-class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	final Environment globals = new Environment();
 	private Environment environment = globals;
 
 	Interpreter(){
-		globals.define("clock", new GemCallable(){
+		/*globals.define("clock", new GemNative.Native(){
 			@Override
 			public int arity(){return 0;}
 
-			@Override public Object call(Interpreter interpreter, List<Object> arguments){
+			@Override
+			public String name() {
+				return "clock";
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments){
 				return (double)System.currentTimeMillis()/1000.0;
 			}
 
 			@Override
 			public String toString(){return "<native fn>";}
 		});
+
+		globals.define("asc", new GemNative.Native(){
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments) {
+				if(arguments.getFirst() instanceof String){
+					return (double)(((String)arguments.getFirst()).charAt(0));
+				}
+
+				return arguments.getFirst();
+			}
+
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public String name() {
+				return "asc";
+			}
+
+			@Override
+			public String toString(){return "<native fn>";}
+		});*/
+
+		try {
+			List<GemNative.Native> natives = loadAllNatives("natives");
+
+			for(GemNative.Native n : natives){
+				globals.define(n.name(), n);
+			}
+
+		}catch (IOException | ClassNotFoundException e){
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	public static List<GemNative.Native> loadAllNatives(String directoryPath) throws IOException, ClassNotFoundException {
+		File dir = new File(directoryPath);
+		if (!dir.exists() || !dir.isDirectory()) {
+			throw new IllegalArgumentException("Invalid natives directory: " + directoryPath);
+		}
+
+		List<GemNative.Native> natives = new ArrayList<>();
+		for (File file : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".ser")))) {
+			try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+				Object obj = in.readObject();
+				if (obj instanceof GemNative.Native nativeFunc) {
+					natives.add(nativeFunc);
+					//System.out.println("Loaded native: " + nativeFunc.name());
+				}
+			}
+		}
+		return natives;
 	}
 
 
@@ -28,9 +95,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
         Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
+		switch(expr.operator.type) {
+			case BANG_EQUAL:
+				return !isEqual(left, right);
+			case EQUAL_EQUAL:
+				return isEqual(left, right);
+		}
+
+
 		switch(expr.operator.type){
-			case BANG_EQUAL: return !isEqual(left, right);
-			case EQUAL_EQUAL: return isEqual(left, right);
 			case GREATER:
 				checkNumberOperands(expr.operator, left, right);
 				return (double)left > (double)right;
@@ -244,10 +317,24 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
-		if(!(callee instanceof GemCallable)){
+		if(!(callee instanceof GemCallable || callee instanceof GemNative.Native)){
 			throw new RuntimeError(expr.paren, "Can not be called.");
 		}
 
+		if(callee instanceof GemNative.Native function){
+			Object result = null;
+			try {
+				result = function.call(Interpreter.this, arguments);
+			}
+			catch(Exception error) {
+				if (arguments.size() != function.arity()) {
+					throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments, but received " + arguments.size() + ".");
+				}
+			}
+
+			return result;
+
+		}
 		GemCallable function = (GemCallable)callee;
 
 		if(arguments.size() != function.arity()){

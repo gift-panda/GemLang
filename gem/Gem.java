@@ -18,7 +18,7 @@ public class Gem {
 	public static void main(String[] args) throws IOException {
 		//args = new String[]{"/home/meow/com/interpreter/gem/sample.gem"};
 		if (args.length > 1) {
-			System.out.println("Usage: jgem [script]");
+			System.err.println("Usage: gem [script]");
 			System.exit(64);
 		} else if (args.length == 1) {
 			runFile(args[0]);

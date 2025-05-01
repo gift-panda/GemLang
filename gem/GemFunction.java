@@ -2,7 +2,7 @@ package com.interpreter.gem;
 
 import java.util.List;
 
-class GemFunction implements GemCallable{
+class GemFunction implements GemCallable, GemNative.Native{
 	private final Stmt.Function declaration;
 	private final Environment closure;
 
@@ -29,6 +29,11 @@ class GemFunction implements GemCallable{
 	@Override
 	public int arity(){
 		return declaration.params.size();
+	}
+
+	@Override
+	public String name() {
+		return null;
 	}
 
 	@Override
