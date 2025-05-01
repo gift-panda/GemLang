@@ -66,6 +66,7 @@ class AstPrinter implements Expr.Visitor<String>{
 		return "";
 	}
 
+
 	private String parenthesize(String name, Expr... exprs) {
 		StringBuilder builder = new StringBuilder();
 

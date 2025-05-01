@@ -26,9 +26,8 @@ class Parser{
 			Token equals = previous();
 			Expr value = assignment();
 
-			if (expr instanceof Expr.GetIndex) {
-				Expr.GetIndex getIndex = (Expr.GetIndex) expr;
-				return new Expr.SetIndex(getIndex.object, getIndex.index, value, getIndex.bracket);
+			if (expr instanceof Expr.GetIndex getIndex) {
+                return new Expr.SetIndex(getIndex.object, getIndex.indexStart, value, getIndex.bracket);
 			}
 
 
@@ -166,9 +165,15 @@ class Parser{
 			if (match(TokenType.LEFT_PAREN)) {
 				expr = finishCall(expr);
 			} else if (match(TokenType.LEFT_BRACKET)) {
-				Expr index = expression();
+				Expr indexStart = expression();
+				Expr indexEnd = indexStart;
+
+				if(match(COLON)){
+					indexEnd = expression();
+				}
+
 				Token bracket = consume(TokenType.RIGHT_BRACKET, "Expect ']' after index.");
-				expr = new Expr.GetIndex(expr, index, bracket);
+				expr = new Expr.GetIndex(expr, indexStart, indexEnd, bracket);
 			} else {
 				break;
 			}

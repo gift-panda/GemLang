@@ -6,8 +6,22 @@ import java.util.List;
 public class GemList {
     private final List<Object> items = new ArrayList<>();
 
-    public Object get(int index) {
-        return items.get(index);
+    public Object get(Token token, int indexStart, int indexEnd) {
+        if(indexStart < 0 || indexStart > items.size() - 1 || indexStart > indexEnd || indexEnd > items.size() - 1) {
+            throw new RuntimeError(token, "Index " + indexStart + " to " + indexEnd + " out of bounds for length " + items.size());
+        }
+
+        GemList result = new GemList();
+
+        if(indexStart == indexEnd) {
+            return items.get(indexStart);
+        }
+
+        for(int i = indexStart; i <= indexEnd; i++){
+            result.add(items.get(i));
+        }
+
+        return result;
     }
 
     public void set(int index, Object value) {

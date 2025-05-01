@@ -269,11 +269,25 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	@Override
 	public Object visitGetIndexExpr(Expr.GetIndex expr) {
 		Object obj = evaluate(expr.object);
-		Object index = evaluate(expr.index);
-		if (obj instanceof GemList && index instanceof Double) {
-			return ((GemList) obj).get(((Double) index).intValue());
+		Object indexStart = evaluate(expr.indexStart);
+		Object indexEnd = evaluate(expr.indexEnd);
+		if (obj instanceof GemList && indexStart instanceof Double && indexEnd instanceof Double) {
+			return ((GemList) obj).get(expr.bracket, ((Double) indexStart).intValue(), ((Double) indexEnd).intValue());
 		}
-		throw new RuntimeError(expr.bracket, "Only lists can be indexed.");
+
+		if(obj instanceof String && indexStart instanceof Double && indexEnd instanceof Double){
+			int start = ((Double)indexStart).intValue();
+			int end = ((Double)indexEnd).intValue();
+			if(start < 0 || start > ((String) obj).length() - 1 || start > end || end > ((String) obj).length() - 1){
+				throw new RuntimeError(expr.bracket, "Index " + start + " to " + end + " out of bounds for length " + (((String) obj).length() - 1) );
+			}
+			return ((String)obj).substring(start, end + 1);
+		}
+
+		if(indexStart instanceof Double && indexEnd instanceof Double)
+			throw new RuntimeError(expr.bracket, "Only lists or strings can be indexed.");
+
+		throw new RuntimeError(expr.bracket, "Index(s) must be a number.");
 	}
 
 	@Override

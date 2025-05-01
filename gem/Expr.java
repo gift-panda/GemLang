@@ -129,9 +129,10 @@ abstract class Expr {
     final List<Expr> arguments;
   }
   static class GetIndex extends Expr {
-    GetIndex(Expr object, Expr index, Token bracket) {
+    GetIndex(Expr object, Expr indexStart, Expr indexEnd, Token bracket) {
       this.object = object;
-      this.index = index;
+      this.indexStart = indexStart;
+      this.indexEnd = indexEnd;
       this.bracket = bracket;
     }
 
@@ -141,7 +142,8 @@ abstract class Expr {
 	}
 
     final Expr object;
-    final Expr index;
+    final Expr indexStart;
+    final Expr indexEnd;
     final Token bracket;
   }
   static class SetIndex extends Expr {

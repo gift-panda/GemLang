@@ -67,6 +67,7 @@ class Scanner {
      	 		case '-': addToken(MINUS); break;
      			case '+': addToken(PLUS); break;
      			case ';': addToken(SEMICOLON); break;
+				case ':': addToken(COLON); break;
      	 		case '*': addToken(STAR); break;
 				case '%': addToken(PERCEN); break;
 				case '\\': addToken(BACKSLASH); break;

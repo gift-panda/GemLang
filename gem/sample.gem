@@ -1,5 +1,5 @@
-fun scope(a){
-    var a = "local";
-    print a;
-}
-scope("global");
+var l = ["1", "2", "3", "4", "5"];
+//l[0] = "k";
+var k;
+k = l[1:2];
+print k;
