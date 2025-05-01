@@ -37,5 +37,5 @@ Extended support of python style dynamic reference to strings
 Implemented the GNI(Gem Native Interface)
 
 UNDER NO CIRCUMSTANCES TOUCH THE 'natives' DIRECTORY
-Use: java GemNative <file path of your java file>
+Use: java GemNative <file path of your .java file. or directory containing multiple .java files>
 To implement your native functions in gem from java

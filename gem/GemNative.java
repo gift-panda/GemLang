@@ -2,8 +2,10 @@ package com.interpreter.gem;
 
 import javax.tools.*;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -20,8 +22,30 @@ public class GemNative{
             System.err.println("Usage: java NativeCompiler <path/to/File.java>");
             return;
         }
+        File file = new File(args[0]);
+        ArrayList<File> filesList = new ArrayList<>();
 
-        File javaFile = new File(args[0]);
+        if(file.exists()){
+            if (file.isDirectory()) {
+                for (File source : Objects.requireNonNull(file.listFiles())) {
+                    if (source.isFile()) {
+                        filesList.add(source);
+                    }
+                }
+            }
+            else {
+                filesList.add(file);
+            }
+        }
+
+        for(File f : filesList){
+            makeNatives(f);
+        }
+
+        deleteDirectoryRecursively(new File("compiled_classes"));
+    }
+
+    private static void makeNatives(File javaFile) throws Exception{
         String className = getClassName(javaFile);  // infer from file name
         File tempOutDir = new File("compiled_classes");
         tempOutDir.mkdir();
@@ -54,12 +78,11 @@ public class GemNative{
         File outDir = new File("natives");
         outDir.mkdir();
         try (ObjectOutputStream out = new ObjectOutputStream(
-                new FileOutputStream(new File(outDir, instance.name() + ".ser")))) {
+                new FileOutputStream(new File(outDir, instance.name() + ".nav")))) {
             out.writeObject(instance);
         }
 
         System.out.println("Successfully implemented native function: " + instance.name());
-        deleteDirectoryRecursively(new File("compiled_classes"));
     }
 
     private static String getClassName(File javaFile) {

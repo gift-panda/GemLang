@@ -77,7 +77,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
 		List<GemNative.Native> natives = new ArrayList<>();
-		for (File file : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".ser")))) {
+		for (File file : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".nav")))) {
 			try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
 				Object obj = in.readObject();
 				if (obj instanceof GemNative.Native nativeFunc) {
@@ -241,13 +241,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	@Override
 	public Void visitExpressionStmt(Stmt.Expression stmt){
 		evaluate(stmt.expression);
-		return null;
-	}
-
-	@Override
-	public Void visitPrintStmt(Stmt.Print stmt){
-		Object value = evaluate(stmt.expression);
-		System.out.println(stringify(value));
 		return null;
 	}
 
