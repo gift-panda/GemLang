@@ -11,12 +11,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class GemNative{
-    public interface Native extends Serializable {
-        Object call(Interpreter interpreter, List<Object> arguments);
-        int arity();
-        String name();
-    }
-
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("Usage: java NativeCompiler <path/to/File.java>");
@@ -68,11 +62,11 @@ public class GemNative{
         Class<?> clazz = classLoader.loadClass(fqcn);
 
         // 3. Check interface and instantiate
-        if (!Native.class.isAssignableFrom(clazz)) {
-            throw new RuntimeException("Class does not implement GemNative.Native");
+        if (!GemCallable.class.isAssignableFrom(clazz)) {
+            throw new RuntimeException("Class does not implement GemFunction");
         }
 
-        GemNative.Native instance = (GemNative.Native) clazz.getDeclaredConstructor().newInstance();
+        GemCallable instance = (GemCallable) clazz.getDeclaredConstructor().newInstance();
 
         // 4. Serialize the object to `natives` directory
         File outDir = new File("natives");

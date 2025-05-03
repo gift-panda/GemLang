@@ -1,11 +1,13 @@
 package com.interpreter.GemNativeFunctions;
 
+import com.interpreter.gem.GemCallable;
 import com.interpreter.gem.GemNative;
 import com.interpreter.gem.Interpreter;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Clock implements GemNative.Native {
+public class Clock implements GemCallable{
     @Override
     public int arity(){return 0;}
 

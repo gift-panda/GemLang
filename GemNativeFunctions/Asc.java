@@ -1,9 +1,10 @@
 package com.interpreter.GemNativeFunctions;
 
+import java.io.Serializable;
 import java.util.List;
 import com.interpreter.gem.*;
 
-public class Asc implements GemNative.Native{
+public class Asc implements GemCallable{
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         if(arguments.getFirst() instanceof String){

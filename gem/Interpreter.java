@@ -58,9 +58,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		});*/
 
 		try {
-			List<GemNative.Native> natives = loadAllNatives("natives");
+			List<GemCallable> natives = loadAllNatives("natives");
 
-			for(GemNative.Native n : natives){
+			for(GemCallable n : natives){
 				globals.define(n.name(), n);
 			}
 
@@ -70,19 +70,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	}
 
-	public static List<GemNative.Native> loadAllNatives(String directoryPath) throws IOException, ClassNotFoundException {
+	public static List<GemCallable> loadAllNatives(String directoryPath) throws IOException, ClassNotFoundException {
 		File dir = new File(directoryPath);
 		if (!dir.exists() || !dir.isDirectory()) {
-			throw new IllegalArgumentException("Invalid natives directory: " + directoryPath);
+			return new ArrayList<>();
 		}
 
-		List<GemNative.Native> natives = new ArrayList<>();
+		List<GemCallable> natives = new ArrayList<>();
 		for (File file : Objects.requireNonNull(dir.listFiles((d, name) -> name.endsWith(".nav")))) {
 			try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
 				Object obj = in.readObject();
-				if (obj instanceof GemNative.Native nativeFunc) {
+				if (obj instanceof GemCallable nativeFunc) {
 					natives.add(nativeFunc);
-					//System.out.println("Loaded native: " + nativeFunc.name());
 				}
 			}
 		}
@@ -147,7 +146,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				}
 
 				throw new RuntimeError(expr.operator, "Operands must be of same type.");
-			
+
 		}
 		return null;
 	}
@@ -160,7 +159,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Object visitLiteralExpr(Expr.Literal expr){
 		return expr.value;
 	}
-	
+
 	@Override
     	public Object visitUnaryExpr(Expr.Unary expr) {
 		Object right = evaluate(expr.right);
@@ -207,7 +206,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	private void checkNumberOperands(Token operator, Object left, Object right) {
 		if (left instanceof Double && right instanceof Double) return;
-    
+
 		throw new RuntimeError(operator, "Operands must be numbers.");
 	}
 	void interpret(List<Stmt> statements){
@@ -310,27 +309,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
-		if(!(callee instanceof GemCallable || callee instanceof GemNative.Native)){
+		if(!(callee instanceof GemCallable function)){
 			throw new RuntimeError(expr.paren, "Can not be called.");
 		}
 
-		if(callee instanceof GemNative.Native function){
-			Object result = null;
-			try {
-				result = function.call(Interpreter.this, arguments);
-			}
-			catch(Exception error) {
-				if (arguments.size() != function.arity()) {
-					throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments, but received " + arguments.size() + ".");
-				}
-			}
-
-			return result;
-
-		}
-		GemCallable function = (GemCallable)callee;
-
-		if(arguments.size() != function.arity()){
+        if(arguments.size() != function.arity()){
 			throw new RuntimeError(expr.paren, "Expected "+function.arity()+" arguments, but received "+arguments.size()+".");
 		}
 
@@ -398,6 +381,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 	public Void visitFunctionStmt(Stmt.Function stmt){
 		GemFunction function = new GemFunction(stmt, environment);
+
+		/*
+		ArrayList<GemFunction> funcs = new ArrayList<>();
+		funcs.add(function);
+
+		if(environment.get(stmt.name) instanceof ArrayList<?> && ((ArrayList<?>) environment.get(stmt.name)).getFirst() instanceof GemFunction) {
+			for (GemFunction overloading : (ArrayList<GemFunction>) environment.get(stmt.name)) {
+				if (function.arity() == overloading.arity()) {
+					System.err.println("bad example");
+					return null;
+				}
+				funcs.add(overloading);
+			}
+		}
+		*/
+
+
+
 		environment.define(stmt.name.lexeme, function);
 		return null;
 	}
