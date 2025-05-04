@@ -40,4 +40,10 @@ class GemFunction implements GemCallable{
 	public String toString(){
 		return "<fn " + declaration.name.lexeme + ">";
 	}
+
+	public Object bind(GemInstance instance) {
+		Environment environment = new Environment(closure);
+		environment.define("this", instance);
+		return new GemFunction(declaration, environment);
+	}
 }

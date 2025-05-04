@@ -4,64 +4,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.*;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	final Environment globals = new Environment();
 	private Environment environment = globals;
+	private final Map<Expr, Integer> locals = new HashMap<>();
 
 	Interpreter(){
-		/*globals.define("clock", new GemNative.Native(){
-			@Override
-			public int arity(){return 0;}
-
-			@Override
-			public String name() {
-				return "clock";
-			}
-
-			@Override
-			public Object call(Interpreter interpreter, List<Object> arguments){
-				return (double)System.currentTimeMillis()/1000.0;
-			}
-
-			@Override
-			public String toString(){return "<native fn>";}
-		});
-
-		globals.define("asc", new GemNative.Native(){
-
-			@Override
-			public Object call(Interpreter interpreter, List<Object> arguments) {
-				if(arguments.getFirst() instanceof String){
-					return (double)(((String)arguments.getFirst()).charAt(0));
-				}
-
-				return arguments.getFirst();
-			}
-
-			@Override
-			public int arity() {
-				return 1;
-			}
-
-			@Override
-			public String name() {
-				return "asc";
-			}
-
-			@Override
-			public String toString(){return "<native fn>";}
-		});*/
-
 		try {
 			List<GemCallable> natives = loadAllNatives("natives");
 
-			for(GemCallable n : natives){
-				globals.define(n.name(), n);
+			for(GemCallable nativeFunction : natives){
+				environment.define(mangleName(nativeFunction.name(), nativeFunction.arity()), nativeFunction);
 			}
 
 		}catch (IOException | ClassNotFoundException e){
@@ -176,7 +132,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Object visitVariableExpr(Expr.Variable expr) {
-		return environment.get(expr.name);
+		return lookUpVariable(expr.name, expr);
+	}
+
+	private Object lookUpVariable(Token name, Expr expr){
+		Integer distance = locals.get(expr);
+		if(distance != null){
+			return environment.getAt(distance, name.lexeme);
+		}
+		else{
+			return globals.get(name);
+		}
 	}
 
 	private Object evaluate(Expr expr){
@@ -258,7 +224,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	@Override
 	public Object visitAssignExpr(Expr.Assign expr){
 		Object value = evaluate(expr.value);
-		environment.assign(expr.name, value);
+
+		Integer distance = locals.get(expr);
+		if(distance != null){
+			environment.assignAt(distance, expr.name, value);
+		}
+		else{
+			globals.assign(expr.name, value);
+		}
+
 		return value;
 	}
 
@@ -301,23 +275,74 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	@Override
-	public Object visitCallExpr(Expr.Call expr){
-		Object callee = evaluate(expr.callee);
-
+	public Object visitCallExpr(Expr.Call expr) {
 		List<Object> arguments = new ArrayList<>();
-		for(Expr argument : expr.arguments){
+		for (Expr argument : expr.arguments) {
 			arguments.add(evaluate(argument));
 		}
 
-		if(!(callee instanceof GemCallable function)){
-			throw new RuntimeError(expr.paren, "Can not be called.");
+		// Handle mangling for calls like greet("Ada") -> greet$1
+		if (expr.callee instanceof Expr.Variable varExpr) {
+			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
+			Object callee = null;
+			try {
+				callee = environment.get(new Token(TokenType.IDENTIFIER, mangled, null, varExpr.name.line));
+			}catch(RuntimeError error){
+				callee = environment.get(new Token(TokenType.IDENTIFIER, varExpr.name.lexeme, null, varExpr.name.line));			}
+
+			if (!(callee instanceof GemCallable)) {
+				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
+			}
+
+
+
+			GemCallable function = (GemCallable) callee;
+			return function.call(this, arguments);
 		}
 
-        if(arguments.size() != function.arity()){
-			throw new RuntimeError(expr.paren, "Expected "+function.arity()+" arguments, but received "+arguments.size()+".");
+		// fallback for non-variable callables (e.g. lambdas)
+		Object callee = evaluate(expr.callee);
+
+		if (!(callee instanceof GemCallable)) {
+			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+		}
+
+		GemCallable function = (GemCallable) callee;
+
+		if (arguments.size() != function.arity()) {
+			throw new RuntimeError(expr.paren, "Expected " +
+					function.arity() + " arguments but got " +
+					arguments.size() + ".");
 		}
 
 		return function.call(this, arguments);
+	}
+
+
+
+
+	@Override
+	public Object visitGetExpr(Expr.Get expr) {
+		Object obj = evaluate(expr.object);
+		if (obj instanceof GemInstance) {
+			return ((GemInstance)obj).get(expr.name);
+		}
+
+		Gem.error(expr.name, "Cannot access property of non-instance '" + expr.name + "'.");
+		return null;
+	}
+
+	@Override
+	public Object visitSetExpr(Expr.Set expr) {
+		Object object = evaluate(expr.object);
+
+		if(!(object instanceof GemInstance)){
+			throw new RuntimeError(expr.name, "Cannot set property of non-instance '" + expr.name + "'.");
+		}
+
+		Object value = evaluate(expr.value);
+		((GemInstance)object).set(expr.name, value);
+		return value;
 	}
 
 	@Override
@@ -379,29 +404,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			this.environment = previous;
 		}
 	}
-	public Void visitFunctionStmt(Stmt.Function stmt){
+	@Override
+	public Void visitFunctionStmt(Stmt.Function stmt) {
+		// Mangle the name by arity
+		String mangledName = mangleName(stmt.name.lexeme, stmt.params.size());
 		GemFunction function = new GemFunction(stmt, environment);
-
-		/*
-		ArrayList<GemFunction> funcs = new ArrayList<>();
-		funcs.add(function);
-
-		if(environment.get(stmt.name) instanceof ArrayList<?> && ((ArrayList<?>) environment.get(stmt.name)).getFirst() instanceof GemFunction) {
-			for (GemFunction overloading : (ArrayList<GemFunction>) environment.get(stmt.name)) {
-				if (function.arity() == overloading.arity()) {
-					System.err.println("bad example");
-					return null;
-				}
-				funcs.add(overloading);
-			}
-		}
-		*/
-
-
-
-		environment.define(stmt.name.lexeme, function);
+		environment.define(mangledName, function);
 		return null;
 	}
+
+	private String mangleName(String name, int arity) {
+		return name + "$" + arity;
+	}
+
+
 
 	@Override
 	public Void visitReturnStmt(Stmt.Return stmt){
@@ -413,6 +429,30 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		throw new Return(value);
 	}
 
+	@Override
+	public Void visitClassStmt(Stmt.Class stmt) {
+		environment.define(stmt.name.lexeme, null);
+
+		Map<String, GemFunction> methods = new HashMap<>();
+		for (Stmt.Function method : stmt.methods) {
+			GemFunction function = new GemFunction(method, environment);
+			methods.put(method.name.lexeme, function);
+		}
+
+		GemClass klass = new GemClass(stmt.name.lexeme, methods);
+
+		environment.assign(stmt.name, klass);
+		return null;
+	}
+
+	@Override
+	public Object visitThisExpr(Expr.This expr) {
+		return environment.get(expr.keyword);
+	}
+
+	void resolve(Expr expr, int depth){
+		locals.put(expr, depth);
+	}
 }
 
 

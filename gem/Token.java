@@ -1,6 +1,6 @@
 package com.interpreter.gem;
 
-class Token{
+public class Token{
 	final TokenType type;
 	final String lexeme;
 	final Object literal;

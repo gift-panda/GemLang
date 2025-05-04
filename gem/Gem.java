@@ -53,20 +53,23 @@ public class Gem {
 		Scanner sc = new Scanner(source);
 		List<Token> tokens = sc.scanTokens();
 
-		//for(Token token : tokens)
-		//	System.out.println(tokens);
-		//System.exit(0);
-
 		Parser parser = new Parser(tokens);
 		List<Stmt> statements = parser.parse();
 		//Expr expression = parser.parse();
 
-		// Stop if there was a syntax error.
-		if (hadError) return;
+		if (hadError) {
+			System.err.println("Parse error");
+			return;
+		}
 
-		//Used to Analyse the AST
-		//System.out.println(new AstPrinter().print(expression));
-		//
+		Resolver resolver = new Resolver(interpreter);
+		resolver.resolve(statements);
+
+		if (hadError){
+			System.err.println("Resolver error");
+			return;
+		}
+
 		//NOW COMES THE PROTAGONIST
 		interpreter.interpret(statements);
 	}
@@ -80,7 +83,7 @@ public class Gem {
 		hadError = true;
 	}
 
-	static void error(Token token, String message) {
+	public static void error(Token token, String message) {
 		if (token.type == TokenType.EOF) {
 			report(token.line, " at end", message);
 		} else {

@@ -8,6 +8,11 @@ import java.util.List;
 public class Println implements GemCallable{
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
+        if(arguments.getFirst() == null){
+            System.out.println("nil");
+            return null;
+        }
+
         if(arguments.getFirst() instanceof Double){
             if(arguments.getFirst().toString().endsWith(".0")){
                 System.out.println(arguments.getFirst().toString().replace(".0", ""));

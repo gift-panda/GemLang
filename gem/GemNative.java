@@ -59,6 +59,7 @@ public class GemNative{
         // 2. Load compiled class
         URLClassLoader classLoader = new URLClassLoader(new URL[]{tempOutDir.toURI().toURL()});
         String fqcn = getFullyQualifiedClassName(javaFile);
+        System.out.println(fqcn);
         Class<?> clazz = classLoader.loadClass(fqcn);
 
         // 3. Check interface and instantiate
@@ -72,11 +73,11 @@ public class GemNative{
         File outDir = new File("natives");
         outDir.mkdir();
         try (ObjectOutputStream out = new ObjectOutputStream(
-                new FileOutputStream(new File(outDir, instance.name() + ".nav")))) {
+                new FileOutputStream(new File(outDir, className + ".nav")))) {
             out.writeObject(instance);
         }
 
-        System.out.println("Successfully implemented native function: " + instance.name());
+        System.out.println("Successfully implemented native function: " + className);
     }
 
     private static String getClassName(File javaFile) {
