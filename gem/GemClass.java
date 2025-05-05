@@ -21,13 +21,26 @@ public class GemClass implements GemCallable{
     public Object call(Interpreter interpreter, List<Object> arguments) {
         GemInstance instance = new GemInstance(this);
 
-        GemFunction initializer = methods.get("init");
-        if(initializer != null) {
+        String mangled = Interpreter.mangleName("init", arguments.size());
+        GemFunction initializer = findMethod(mangled);
+
+        if (initializer != null) {
             initializer.bind(instance).call(interpreter, arguments);
         }
 
         return instance;
     }
+
+    public boolean hasOverloadedMethod(String baseName) {
+        for (String methodName : methods.keySet()) {
+            if (methodName.equals(baseName) || methodName.startsWith(baseName + "$")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 
     @Override
     public int arity() {

@@ -1,17 +1,12 @@
-class Food{
-    init(food){
-        println("Start eating " + food);
-        return;
-    }
-    eat(food, b){
-        println("Eating "+b);
-    }
-    make(){
-        println("making " + this.a);
-    }
+var nums = [1, 2, 3, 4, 5];
+var words = ["lox", "rocks", "!"];
+
+println(nums[0]);
+println(words[1]);
+
+func printSecond(arr) {
+    println("Second element: " + arr[1]);
 }
 
-
-var v = Food("breakfast");
-v.a = "eggs";
-v.eat(v.a, "hungy");
+printSecond(nums);
+printSecond(words);

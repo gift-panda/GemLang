@@ -27,7 +27,8 @@ public class GenerateAst{
 			"This     : Token keyword",
 			"GetIndex : Expr object, Expr indexStart, Expr indexEnd, Token bracket",
 			"SetIndex : Expr object, Expr index, Expr value, Token bracket",
-			"ListLiteral : List<Expr> elements"
+			"ListLiteral : List<Expr> elements",
+			"SubScript   : "
 		));
 
 		defineAst(outputDir, "Stmt", Arrays.asList(

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GemInstance {
-    private GemClass klass;
+    public GemClass klass;
     final Map<String, Object> fields = new HashMap<>();
 
     GemInstance(GemClass klass) {
@@ -17,18 +17,20 @@ public class GemInstance {
     }
 
     public Object get(Token name) {
-        if(fields.containsKey(name.lexeme)) {
-            return fields.get(name.lexeme);
+        Object value = fields.get(name.lexeme);
+        if (value != null) return value;
+
+        if (klass.hasOverloadedMethod(name.lexeme)) {
+            return new DeferredCallable(this, name.lexeme);
         }
 
-        GemFunction method = klass.findMethod(name.lexeme);
-        if(method != null) {
-            return method.bind(this);
-        }
 
-        Gem.error(name, "Trying to access undefined property '" + name.lexeme + "'.");
-        return null;
+        GemFunction method = klass.findMethod(Interpreter.mangleName(name.lexeme, 0));
+        if (method != null) return method.bind(this);
+
+        throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
     }
+
 
     public void set(Token name, Object value) {
         fields.put(name.lexeme, value);

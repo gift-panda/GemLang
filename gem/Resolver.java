@@ -245,16 +245,25 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitGetIndexExpr(Expr.GetIndex expr) {
+        resolve(expr.object);
+        resolve(expr.indexStart);
+        resolve(expr.indexEnd);
         return null;
     }
 
     @Override
     public Void visitSetIndexExpr(Expr.SetIndex expr) {
+        resolve(expr.object);
+        resolve(expr.index);
+        resolve(expr.value);
         return null;
     }
 
     @Override
     public Void visitListLiteralExpr(Expr.ListLiteral expr) {
+        for(Expr literal : expr.elements) {
+            resolve(literal);
+        }
         return null;
     }
 

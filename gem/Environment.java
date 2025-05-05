@@ -43,6 +43,11 @@ class Environment{
 		throw new RuntimeError(name, "Undefined '" + name.lexeme + "'.");
 	}
 
+	public boolean exists(String name) {
+		return values.containsKey(name);
+	}
+
+
 	Object getOrNull(Token name) {
 		if (values.containsKey(name.lexeme)) return values.get(name.lexeme);
 		if (enclosing != null) return enclosing.getOrNull(name);

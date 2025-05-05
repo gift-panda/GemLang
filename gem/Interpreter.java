@@ -288,11 +288,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
-		for(Object arg: arguments){
-			//System.out.println("internal: "+stringify(arg));
-		}
-
-		// Handle mangling for calls like greet("Ada") -> greet$1
 		if (expr.callee instanceof Expr.Variable varExpr) {
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
 			Object callee;
@@ -307,6 +302,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
             return function.call(this, arguments);
 		}
+
+		if (expr.callee instanceof Expr.Get getExpr) {
+			Object object = evaluate(getExpr.object);
+			if (object instanceof GemInstance instance) {
+				String mangled = mangleName(getExpr.name.lexeme, arguments.size());
+				GemFunction method = instance.klass.findMethod(mangled);
+
+				if (method == null) {
+					throw new RuntimeError(getExpr.name, "Undefined method '" +
+							getExpr.name.lexeme + "' with " + arguments.size() + " arguments.");
+				}
+
+				return method.bind(instance).call(this, arguments);
+			}
+		}
+
 
 		Object callee = evaluate(expr.callee);
 
@@ -417,10 +428,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		String mangledName = mangleName(stmt.name.lexeme, stmt.params.size());
 		GemFunction function = new GemFunction(stmt, environment, false);
 		environment.define(mangledName, function);
+
+		String mangled = mangleName(stmt.name.lexeme, stmt.params.size());
+		environment.define(mangled, function);
+
+// If base name not defined, define dispatcher
+		if (!environment.exists(stmt.name.lexeme)) {
+			environment.define(stmt.name.lexeme,
+					new FunctionDispatcher(stmt.name.lexeme, environment));
+		}
+
+
 		return null;
 	}
 
-	private String mangleName(String name, int arity) {
+	public static String mangleName(String name, int arity) {
 		return name + "$" + arity;
 	}
 
@@ -441,10 +463,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		environment.define(stmt.name.lexeme, null);
 
 		Map<String, GemFunction> methods = new HashMap<>();
+
 		for (Stmt.Function method : stmt.methods) {
-			GemFunction function = new GemFunction(method, environment,method.name.lexeme.equals("init") );
-			methods.put(method.name.lexeme, function);
+			String name = method.name.lexeme;
+			int arity = method.params.size();
+			boolean isInit = name.equals("init");
+
+			String mangled = mangleName(name, arity);
+			methods.put(mangled, new GemFunction(method, environment, isInit));
 		}
+
 
 		GemClass klass = new GemClass(stmt.name.lexeme, methods);
 
