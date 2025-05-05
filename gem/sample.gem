@@ -1,9 +1,17 @@
-class Bacon {
-    eat(){
-        println("Eating "+this.a);
+class Food{
+    init(food){
+        println("Start eating " + food);
+        return;
+    }
+    eat(food, b){
+        println("Eating "+b);
+    }
+    make(){
+        println("making " + this.a);
     }
 }
 
-var food = Bacon();
-food.a = "eggs";
-food.eat();
+
+var v = Food("breakfast");
+v.a = "eggs";
+v.eat(v.a, "hungy");

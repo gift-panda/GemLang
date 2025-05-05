@@ -92,11 +92,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 				//This could use a || instead of a && later?
 				if(left instanceof String || right instanceof String) {
-					String leftText = left.toString(), rightText = right.toString();
-					if(left.toString().endsWith(".0"))
+					String leftText = "nil", rightText = "nil";
+
+					if(left != null){
+						leftText = left.toString();
+					}
+					if(right != null){
+						rightText = right.toString();
+					}
+					if(leftText.endsWith(".0"))
 						leftText = leftText.substring(0, leftText.length() - 2);
 
-					if(right.toString().endsWith(".0"))
+					if(rightText.endsWith(".0"))
 						rightText = rightText.substring(0, rightText.length() - 2);
 					return leftText + rightText;
 				}
@@ -281,56 +288,56 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
+		for(Object arg: arguments){
+			//System.out.println("internal: "+stringify(arg));
+		}
+
 		// Handle mangling for calls like greet("Ada") -> greet$1
 		if (expr.callee instanceof Expr.Variable varExpr) {
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
-			Object callee = null;
+			Object callee;
 			try {
 				callee = environment.get(new Token(TokenType.IDENTIFIER, mangled, null, varExpr.name.line));
 			}catch(RuntimeError error){
 				callee = environment.get(new Token(TokenType.IDENTIFIER, varExpr.name.lexeme, null, varExpr.name.line));			}
 
-			if (!(callee instanceof GemCallable)) {
+			if (!(callee instanceof GemCallable function)) {
 				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
 			}
 
-
-
-			GemCallable function = (GemCallable) callee;
-			return function.call(this, arguments);
+            return function.call(this, arguments);
 		}
 
-		// fallback for non-variable callables (e.g. lambdas)
 		Object callee = evaluate(expr.callee);
 
-		if (!(callee instanceof GemCallable)) {
+		if (!(callee instanceof GemCallable function)) {
 			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
 		}
 
-		GemCallable function = (GemCallable) callee;
-
-		if (arguments.size() != function.arity()) {
+        if (arguments.size() != function.arity()) {
 			throw new RuntimeError(expr.paren, "Expected " +
 					function.arity() + " arguments but got " +
 					arguments.size() + ".");
 		}
-
 		return function.call(this, arguments);
 	}
 
-
-
-
 	@Override
 	public Object visitGetExpr(Expr.Get expr) {
-		Object obj = evaluate(expr.object);
-		if (obj instanceof GemInstance) {
-			return ((GemInstance)obj).get(expr.name);
+		Object object = evaluate(expr.object);
+		if (object instanceof GemInstance instance) {
+			Object value = instance.get(expr.name);
+
+			if (value instanceof GemFunction function) {
+				return function.bind(instance);
+			}
+
+			return value;
 		}
 
-		Gem.error(expr.name, "Cannot access property of non-instance '" + expr.name + "'.");
-		return null;
+		throw new RuntimeError(expr.name, "Only instances have properties.");
 	}
+
 
 	@Override
 	public Object visitSetExpr(Expr.Set expr) {
@@ -408,7 +415,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Void visitFunctionStmt(Stmt.Function stmt) {
 		// Mangle the name by arity
 		String mangledName = mangleName(stmt.name.lexeme, stmt.params.size());
-		GemFunction function = new GemFunction(stmt, environment);
+		GemFunction function = new GemFunction(stmt, environment, false);
 		environment.define(mangledName, function);
 		return null;
 	}
@@ -435,7 +442,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 		Map<String, GemFunction> methods = new HashMap<>();
 		for (Stmt.Function method : stmt.methods) {
-			GemFunction function = new GemFunction(method, environment);
+			GemFunction function = new GemFunction(method, environment,method.name.lexeme.equals("init") );
 			methods.put(method.name.lexeme, function);
 		}
 

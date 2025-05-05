@@ -20,12 +20,22 @@ public class GemClass implements GemCallable{
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         GemInstance instance = new GemInstance(this);
+
+        GemFunction initializer = methods.get("init");
+        if(initializer != null) {
+            initializer.bind(instance).call(interpreter, arguments);
+        }
+
         return instance;
     }
 
     @Override
     public int arity() {
-        return 0;
+        GemFunction initializer = methods.get("init");
+        if(initializer == null) {
+            return 0;
+        }
+        return initializer.arity();
     }
 
     @Override
