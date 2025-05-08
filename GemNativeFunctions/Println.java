@@ -3,6 +3,7 @@ package com.interpreter.GemNativeFunctions;
 import com.interpreter.gem.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Println implements GemCallable{
@@ -11,6 +12,18 @@ public class Println implements GemCallable{
         if(arguments.getFirst() == null){
             System.out.println("nil");
             return null;
+        }
+
+        if(arguments.getFirst() instanceof GemInstance instance){
+            GemFunction function = instance.klass.findMethod(Interpreter.mangleName("toString",0));
+
+            if(function != null) {
+                function = function.bind(instance);
+                Object result = function.call(interpreter, new ArrayList<>());
+
+                System.out.println(result);
+                return null;
+            }
         }
 
         if(arguments.getFirst() instanceof Double){

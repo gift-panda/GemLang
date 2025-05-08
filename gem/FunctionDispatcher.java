@@ -32,5 +32,10 @@ public class FunctionDispatcher implements GemCallable {
     public String name() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "<fn " + baseName +">";
+    }
 }
 

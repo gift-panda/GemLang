@@ -2,7 +2,7 @@ package com.interpreter.gem;
 
 import java.util.List;
 
-class GemFunction implements GemCallable{
+public class GemFunction implements GemCallable{
 	private final Stmt.Function declaration;
 	private final Environment closure;
 	private final boolean isInitializer;

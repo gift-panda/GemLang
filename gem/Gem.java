@@ -55,10 +55,8 @@ public class Gem {
 
 		Parser parser = new Parser(tokens);
 		List<Stmt> statements = parser.parse();
-		//Expr expression = parser.parse();
 
 		if (hadError) {
-			System.err.println("Parse error");
 			return;
 		}
 
@@ -66,7 +64,6 @@ public class Gem {
 		resolver.resolve(statements);
 
 		if (hadError){
-			System.err.println("Resolver error");
 			return;
 		}
 

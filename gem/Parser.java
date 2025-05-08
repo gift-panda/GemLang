@@ -222,6 +222,13 @@ class Parser{
 			return new Expr.Variable(previous());
 		}
 
+		if(match(SUPER)){
+			Token keyword = previous();
+			consume(DOT, "Expect '.' after 'super'.");
+			Token method = consume(IDENTIFIER, "Expected superclass methods.");
+			return new Expr.Super(keyword, method);
+		}
+
 		if (match(TokenType.LEFT_BRACKET)) {
 			List<Expr> elements = new ArrayList<>();
 			if (!check(TokenType.RIGHT_BRACKET)) {
@@ -299,6 +306,13 @@ class Parser{
 
 	private Stmt classDeclaration(){
 		Token name = consume(IDENTIFIER, "Expected class name.");
+
+		Expr.Variable superClass = null; //Add a universal super class here
+		if(match(COLON)){
+			consume(IDENTIFIER, "Expect ':' after class name.");
+			superClass = new Expr.Variable(previous());
+		}
+
 		consume(LEFT_BRACE, "Expect class body.");
 
 		List<Stmt.Function> methods = new ArrayList<>();
@@ -308,7 +322,7 @@ class Parser{
 
 		consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-		return new Stmt.Class(name, methods);
+		return new Stmt.Class(name, superClass, methods);
 	}
 
 	private Stmt returnStatement(){

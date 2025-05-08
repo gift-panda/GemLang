@@ -5,10 +5,12 @@ import java.util.List;
 public class DeferredCallable implements GemCallable {
     private final GemInstance instance;
     private final String name;
+    private final Token keyword;
 
-    public DeferredCallable(GemInstance instance, String name) {
+    public DeferredCallable(GemInstance instance, String name, Token keyword) {
         this.instance = instance;
         this.name = name;
+        this.keyword = keyword;
     }
 
     @Override
@@ -16,7 +18,7 @@ public class DeferredCallable implements GemCallable {
         String mangled = Interpreter.mangleName(name, arguments.size());
         GemFunction method = instance.klass.findMethod(mangled);
         if (method == null) {
-            throw new RuntimeError(null, "No method '" + name + "' with " + arguments.size() + " args.");
+            throw new RuntimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
         }
         return method.bind(instance).call(interpreter, arguments);
     }
@@ -28,6 +30,12 @@ public class DeferredCallable implements GemCallable {
 
     @Override
     public String name() {
-        return null;
+        return "";
+    }
+
+
+    @Override
+    public String toString() {
+        return "<md " + name + "> (deferred)";
     }
 }

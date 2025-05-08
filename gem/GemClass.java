@@ -5,11 +5,13 @@ import java.util.Map;
 
 public class GemClass implements GemCallable{
     final private String name;
-    private final Map<String, GemFunction> methods;
+    public final Map<String, GemFunction> methods;
+    final GemClass superclass;
 
-    GemClass(String name, Map<String, GemFunction> methods) {
+    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods) {
         this.name = name;
         this.methods = methods;
+        this.superclass = superclass;
     }
 
     @Override
@@ -59,6 +61,9 @@ public class GemClass implements GemCallable{
     public GemFunction findMethod(String name) {
         if(methods.containsKey(name)) {
             return methods.get(name);
+        }
+        if(superclass != null) {
+            return superclass.findMethod(name);
         }
         return null;
     }

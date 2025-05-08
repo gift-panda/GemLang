@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
@@ -288,6 +289,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
+
 		if (expr.callee instanceof Expr.Variable varExpr) {
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
 			Object callee;
@@ -325,11 +327,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
 		}
 
-        if (arguments.size() != function.arity()) {
-			throw new RuntimeError(expr.paren, "Expected " +
-					function.arity() + " arguments but got " +
-					arguments.size() + ".");
-		}
 		return function.call(this, arguments);
 	}
 
@@ -460,7 +457,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {
+		Object superclass = null;
+		if (stmt.superclass != null) {
+			superclass = evaluate(stmt.superclass);
+			if (!(superclass instanceof GemClass)) {
+				throw new RuntimeError(stmt.superclass.name,
+						"Superclass must be a class.");
+			}
+		}
+
 		environment.define(stmt.name.lexeme, null);
+
+		if(stmt.superclass != null){
+			environment = new Environment(environment);
+			environment.define("super", superclass);
+		}
 
 		Map<String, GemFunction> methods = new HashMap<>();
 
@@ -474,8 +485,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
 
-		GemClass klass = new GemClass(stmt.name.lexeme, methods);
+		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods);
 
+		if(superclass != null){
+			environment = environment.enclosing;
+		}
 		environment.assign(stmt.name, klass);
 		return null;
 	}
@@ -487,6 +501,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	void resolve(Expr expr, int depth){
 		locals.put(expr, depth);
+	}
+
+	@Override
+	public Object visitSuperExpr(Expr.Super expr) {
+		int distance = locals.get(expr);
+		GemClass superclass = (GemClass) environment.getAt(distance, "super");
+
+		GemInstance object = (GemInstance) environment.getAt(distance - 1, "this");
+		return new DeferredSuperCallable(superclass, object, expr.method.lexeme, expr.keyword);
 	}
 }
 

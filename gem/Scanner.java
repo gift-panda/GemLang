@@ -132,10 +132,55 @@ class Scanner {
 
 		advance();
 		
-		//Unescaping escaping sequences done here!
+		//Unescape escape sequences done here!
 		String value = source.substring(start+1, current-1);
-		addToken(STRING, value);
+
+		addToken(STRING, unescape(value));
 	}
+	private static String unescape(String input) {
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < input.length(); i++) {
+			char c = input.charAt(i);
+			if (c == '\\' && i + 1 < input.length()) {
+				char next = input.charAt(i + 1);
+				switch (next) {
+					case 'n': result.append('\n'); i++; break;
+					case 't': result.append('\t'); i++; break;
+					case 'r': result.append('\r'); i++; break;
+					case 'b': result.append('\b'); i++; break;
+					case 'f': result.append('\f'); i++; break;
+					case '\'': result.append('\''); i++; break;
+					case '\"': result.append('\"'); i++; break;
+					case '\\': result.append('\\'); i++; break;
+					case 'u':
+						// Handle Unicode escape
+						if (i + 5 < input.length()) {
+							String hex = input.substring(i + 2, i + 6);
+							try {
+								int codePoint = Integer.parseInt(hex, 16);
+								result.append((char) codePoint);
+								i += 5;
+							} catch (NumberFormatException e) {
+								result.append("\\u"); // Leave as is if invalid
+								i++;
+							}
+						} else {
+							result.append("\\u"); // Incomplete
+							i++;
+						}
+						break;
+					default:
+						result.append('\\').append(next);
+						i++;
+						break;
+				}
+			} else {
+				result.append(c);
+			}
+		}
+		return result.toString();
+	}
+
 	private boolean isDigit(char c){
 		return c >= '0' && c <= '9';
 	}

@@ -21,7 +21,7 @@ public class GemInstance {
         if (value != null) return value;
 
         if (klass.hasOverloadedMethod(name.lexeme)) {
-            return new DeferredCallable(this, name.lexeme);
+            return new DeferredCallable(this, name.lexeme, name);
         }
 
 
