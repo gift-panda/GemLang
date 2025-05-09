@@ -9,7 +9,6 @@ import java.util.Scanner;
 public class Input implements GemCallable{
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        System.out.println();
         Scanner sc = new Scanner(System.in);
         return sc.nextLine();
     }
@@ -22,5 +21,9 @@ public class Input implements GemCallable{
     @Override
     public String name() {
         return "input";
+    }
+
+    public String toString(){
+        return "<native fn>";
     }
 }

@@ -1,0 +1,19 @@
+class String{
+    init(value, length){
+        this.value = value;
+        this.length = length;
+    }
+
+    init(str){
+        this.value = str.value;
+        this.length = str.length();
+    }
+
+    length(){
+        return this.length;
+    }
+
+    toString(){
+        return this.value;
+    }
+}

@@ -1,0 +1,11 @@
+class Boolean{
+    init(value){
+        this.value = value;
+    }
+    isFalse(){
+        return !this.value;
+    }
+    toString(){
+        return this.value;
+    }
+}

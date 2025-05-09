@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.interpreter.gem.Scanner;
@@ -14,6 +15,7 @@ public class Gem {
 	private static final Interpreter interpreter = new Interpreter();
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
+	private final static List<String> autoImports = List.of("Gem.String", "Gem.Number", "Gem.Boolean");
 
 	public static void main(String[] args) throws IOException {
 		//args = new String[]{"/home/meow/com/interpreter/gem/sample.gem"};
@@ -50,6 +52,27 @@ public class Gem {
 	}
 
 	private static void run(String source) {
+		interpreter.currentSourceFile = Paths.get(source).toAbsolutePath().getParent();
+
+		StringBuilder imports = new StringBuilder();
+		for(String imp: autoImports){
+			imports.append("import ").append(imp).append(";\n");
+		}
+
+		Scanner importScanner = new Scanner(imports.toString());
+		List<Token> importTokens = importScanner.scanTokens();
+
+		Parser importParser = new Parser(importTokens);
+		List<Stmt> importStmts = importParser.parse();
+
+		interpreter.interpret(importStmts);
+		interpreter.setWrappers(
+				(GemClass) interpreter.globals.get("String"),
+				(GemClass) interpreter.globals.get("Number"),
+				(GemClass) interpreter.globals.get("Boolean")
+		);
+
+
 		Scanner sc = new Scanner(source);
 		List<Token> tokens = sc.scanTokens();
 

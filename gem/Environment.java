@@ -3,7 +3,7 @@ package com.interpreter.gem;
 import java.util.HashMap;
 import java.util.Map;
 
-class Environment{
+public class Environment{
 	private final Map<String, Object> values = new HashMap<>();
 	final Environment enclosing;
 
@@ -19,7 +19,7 @@ class Environment{
 		values.put(name, value);
 	}
 
-	Object get(Token name){
+	public Object get(Token name){
 		if(values.containsKey(name.lexeme)){
 			return values.get(name.lexeme);
 		}
@@ -27,6 +27,16 @@ class Environment{
 		if(enclosing != null) return enclosing.get(name);
 
 		throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+	}
+
+	public Object get(String name){
+		if(values.containsKey(name)){
+			return values.get(name);
+		}
+
+		if(enclosing != null) return enclosing.get(name);
+
+		return null;
 	}
 
 	void assign(Token name, Object value){

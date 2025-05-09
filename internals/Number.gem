@@ -1,0 +1,13 @@
+class Number{
+    init(value){
+        this.value = value;
+    }
+
+    isNum(){
+        return true;
+    }
+
+    toString(){
+        return this.value;
+    }
+}

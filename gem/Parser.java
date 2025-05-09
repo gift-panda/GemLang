@@ -299,10 +299,25 @@ class Parser{
 		if(match(FOR)) return forStatement();
 		if(match(LEFT_BRACE)) return new Stmt.Block(block());
 		if(match(RETURN)) return returnStatement();
+		if(match(IMPORT)) return importStatement();
 		
 
 		return expressionStatement();
 	}
+
+	private Stmt importStatement() {
+		Token name = consume(IDENTIFIER, "Expect module name after 'import'.");
+		StringBuilder moduleName = new StringBuilder(name.lexeme);
+
+		while (match(DOT)) {
+			Token next = consume(IDENTIFIER, "Expect identifier after '.'.");
+			moduleName.append(".").append(next.lexeme);
+		}
+
+		consume(SEMICOLON, "Expect ';' after import.");
+		return new Stmt.Import(moduleName.toString(), name);
+	}
+
 
 	private Stmt classDeclaration(){
 		Token name = consume(IDENTIFIER, "Expected class name.");

@@ -11,6 +11,7 @@ abstract class Stmt {
 		R visitWhileStmt(While stmt);
 		R visitVarStmt(Var stmt);
 		R visitReturnStmt(Return stmt);
+		R visitImportStmt(Import stmt);
 		R visitFunctionStmt(Function stmt);
 	}
   static class Block extends Stmt {
@@ -110,6 +111,20 @@ abstract class Stmt {
 
     final Token keyword;
     final Expr value;
+  }
+  static class Import extends Stmt {
+    Import(String moduleName, Token keyword) {
+      this.moduleName = moduleName;
+      this.keyword = keyword;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitImportStmt(this);
+	}
+
+    final String moduleName;
+    final Token keyword;
   }
   static class Function extends Stmt {
     Function(Token name, List<Token> params, List<Stmt> body) {

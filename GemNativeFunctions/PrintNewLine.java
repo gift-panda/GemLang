@@ -21,4 +21,8 @@ public class PrintNewLine implements GemCallable{
     public String name() {
         return "println";
     }
+
+    public String toString(){
+        return "<native fn>";
+    }
 }

@@ -1,6 +1,7 @@
 package com.interpreter.gem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GemInstance {
@@ -13,6 +14,10 @@ public class GemInstance {
 
     @Override
     public String toString() {
+        Object string = get("toString");
+        if(string != null) {
+            return (String) ((GemFunction)string).call(new Interpreter(), List.of());
+        }
         return klass.name() + " instance";
     }
 
@@ -29,6 +34,14 @@ public class GemInstance {
         if (method != null) return method.bind(this);
 
         throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
+    }
+
+    public Object get(String name) {
+        Object value = fields.get(name);
+        if(value != null) return value;
+
+
+        return null;
     }
 
 

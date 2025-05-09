@@ -40,6 +40,7 @@ public class GenerateAst{
 			"While      : Expr condition, Stmt body",
 			"Var        : Token name, Expr initializer",
 			"Return     : Token keyword, Expr value",
+			"Import     : String moduleName, Token keyword",
 			"Function   : Token name, List<Token> params, List<Stmt> body"
 		));
 

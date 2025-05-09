@@ -4,14 +4,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.Callable;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
-	final Environment globals = new Environment();
+	public final Environment globals = new Environment();
 	private Environment environment = globals;
 	private final Map<Expr, Integer> locals = new HashMap<>();
+	public Path currentSourceFile = null;
+	private final List<String> alreadyImported = new ArrayList<>();
 
 	Interpreter(){
 		try {
@@ -26,6 +32,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
 	}
+
+	private GemClass stringClass;
+	private GemClass numberClass;
+	private GemClass booleanClass;
+
+	public void setWrappers(GemClass stringCls, GemClass numberCls, GemClass booleanCls) {
+		this.stringClass = stringCls;
+		this.numberClass = numberCls;
+		this.booleanClass = booleanCls;
+	}
+
 
 	public static List<GemCallable> loadAllNatives(String directoryPath) throws IOException, ClassNotFoundException {
 		File dir = new File(directoryPath);
@@ -48,81 +65,113 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Object visitBinaryExpr(Expr.Binary expr) {
-        Object left = evaluate(expr.left);
+		Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
-		switch(expr.operator.type) {
+		Object leftRaw = unwrap(left);
+		Object rightRaw = unwrap(right);
+
+		switch (expr.operator.type) {
 			case BANG_EQUAL:
-				return !isEqual(left, right);
+				return wrapBoolean(!isEqual(leftRaw, rightRaw));
 			case EQUAL_EQUAL:
-				return isEqual(left, right);
+				return wrapBoolean(isEqual(leftRaw, rightRaw));
 		}
 
-
-		switch(expr.operator.type){
+		switch (expr.operator.type) {
 			case GREATER:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left > (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapBoolean((double) leftRaw > (double) rightRaw);
 			case GREATER_EQUAL:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left >= (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapBoolean((double) leftRaw >= (double) rightRaw);
 			case LESS:
-				checkNumberOperands(expr.operator, left , right);
-				return (double)left < (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapBoolean((double) leftRaw < (double) rightRaw);
 			case LESS_EQUAL:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left <= (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapBoolean((double) leftRaw <= (double) rightRaw);
 			case MINUS:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left - (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapNumber((double) leftRaw - (double) rightRaw);
 			case PERCEN:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left % (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapNumber((double) leftRaw % (double) rightRaw);
 			case BACKSLASH:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)((int)(double)left / (int)(double)right);
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapNumber((double) ((int) (double) leftRaw / (int) (double) rightRaw));
 			case SLASH:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left / (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapNumber((double) leftRaw / (double) rightRaw);
 			case STAR:
-				checkNumberOperands(expr.operator, left, right);
-				return (double)left * (double)right;
+				checkNumberOperands(expr.operator, leftRaw, rightRaw);
+				return wrapNumber((double) leftRaw * (double) rightRaw);
 			case PLUS:
-				if(left instanceof Double && right instanceof Double)
-					return (double)left + (double)right;
+				if (leftRaw instanceof Double && rightRaw instanceof Double) {
+					return wrapNumber((double) leftRaw + (double) rightRaw);
+				}
 
-				//This could use a || instead of a && later?
-				if(left instanceof String || right instanceof String) {
-					String leftText = "nil", rightText = "nil";
+				if (leftRaw instanceof String || rightRaw instanceof String) {
+					String leftText = leftRaw != null ? leftRaw.toString() : "nil";
+					String rightText = rightRaw != null ? rightRaw.toString() : "nil";
 
-					if(left != null){
-						leftText = left.toString();
-					}
-					if(right != null){
-						rightText = right.toString();
-					}
-					if(leftText.endsWith(".0"))
+					// Trim .0 from double-as-string if desired
+					if (leftText.endsWith(".0")) {
 						leftText = leftText.substring(0, leftText.length() - 2);
-
-					if(rightText.endsWith(".0"))
+					}
+					if (rightText.endsWith(".0")) {
 						rightText = rightText.substring(0, rightText.length() - 2);
-					return leftText + rightText;
+					}
+
+					return wrapString(leftText + rightText);
 				}
 
 				throw new RuntimeError(expr.operator, "Operands must be of same type.");
-
 		}
+
 		return null;
 	}
 
-    	@Override
-    	public Object visitGroupingExpr(Expr.Grouping expr) {
-		return evaluate(expr.expression);
-    	}
-        @Override
-	public Object visitLiteralExpr(Expr.Literal expr){
-		return expr.value;
+	private Object wrapNumber(double value) {
+		return numberClass.call(this, List.of(value));
 	}
+
+	private Object wrapString(String value) {
+		return stringClass.call(this, List.of(value, value.length()));
+	}
+
+
+	private Object wrapBoolean(boolean value) {
+		return booleanClass.call(this, List.of(value));
+	}
+
+	@Override
+	public Object visitGroupingExpr(Expr.Grouping expr) {
+		return evaluate(expr.expression);
+	}
+
+	@Override
+	public Object visitLiteralExpr(Expr.Literal expr) {
+		Object value = expr.value;
+
+		if (value instanceof String) {
+			return stringClass.call(this, List.of(value, ((String) value).length()));
+		} else if (value instanceof Double) {
+			return numberClass.call(this, List.of(value));
+		} else if (value instanceof Boolean) {
+			return booleanClass.call(this, List.of(value));
+		}
+		return value;
+	}
+
+	public static Object unwrap(Object obj) {
+		if (obj instanceof GemInstance inst && (inst.klass.name().equals("String") || inst.klass.name().equals("Number") || inst.klass.name().equals("Boolean"))) {
+            return inst.get("value"); // assumes wrapper stores it in `.value`
+		}
+		return obj;
+	}
+
+
 
 	@Override
     	public Object visitUnaryExpr(Expr.Unary expr) {
@@ -158,13 +207,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	private boolean isTruthy(Object object){
-		if(object == null) return false;
-		if(object instanceof Boolean) return (boolean)object;
+        return switch (object) {
+			case null -> false;
+            case GemInstance instance when instance.klass.name().equals("Boolean") -> (Boolean) instance.get("value");
+            case GemInstance instance when instance.klass.name().equals("Number") ->
+                    (Double) instance.get("value") != 0;
+            default -> true;
+        };
 
-		//Might need to be changed
-		if(object instanceof Double && (double)object == 0) return false;
-		return true;
-	}
+    }
 
 	private boolean isEqual(Object a, Object b) {
 		if (a == null && b == null) return true;
@@ -289,7 +340,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			arguments.add(evaluate(argument));
 		}
 
-
 		if (expr.callee instanceof Expr.Variable varExpr) {
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
 			Object callee;
@@ -302,7 +352,23 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
 			}
 
-            return function.call(this, arguments);
+			if(callee.toString().equals("<native fn>")){
+				for(int i = 0; i < arguments.size(); i++){
+					arguments.set(i, unwrap(arguments.get(i)));
+				}
+			}
+
+			Object result = function.call(this, arguments);
+
+
+			if(result instanceof Boolean)
+				return wrapBoolean((Boolean) result);
+			else if(result instanceof Double)
+				return wrapNumber((Double) result);
+			else if(result instanceof String)
+				return wrapString((String) result);
+
+			return result;
 		}
 
 		if (expr.callee instanceof Expr.Get getExpr) {
@@ -316,7 +382,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 							getExpr.name.lexeme + "' with " + arguments.size() + " arguments.");
 				}
 
-				return method.bind(instance).call(this, arguments);
+				Object result =  method.bind(instance).call(this, arguments);
+
+				if(result instanceof Boolean)
+					return wrapBoolean((Boolean) result);
+				else if(result instanceof Double)
+					return wrapNumber((Double) result);
+				else if(result instanceof String)
+					return wrapString((String) result);
+
+				return result;
 			}
 		}
 
@@ -327,19 +402,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
 		}
 
-		return function.call(this, arguments);
+		Object result = function.call(this, arguments);
+
+		if(result instanceof Boolean)
+			return wrapBoolean((Boolean) result);
+		else if(result instanceof Double)
+			return wrapNumber((Double) result);
+		else if(result instanceof String)
+			return wrapString((String) result);
+
+		return result;
 	}
 
 	@Override
 	public Object visitGetExpr(Expr.Get expr) {
-		Object object = evaluate(expr.object);
+		Object object = evaluate(expr.object);if(object != null)
 		if (object instanceof GemInstance instance) {
 			Object value = instance.get(expr.name);
 
 			if (value instanceof GemFunction function) {
 				return function.bind(instance);
 			}
-
 			return value;
 		}
 
@@ -371,11 +454,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Object visitGetIndexExpr(Expr.GetIndex expr) {
-		Object obj = evaluate(expr.object);
-		Object indexStart = evaluate(expr.indexStart);
-		Object indexEnd = evaluate(expr.indexEnd);
+		Object obj = unwrap(evaluate(expr.object));
+		Object indexStart = unwrap(evaluate(expr.indexStart));
+		Object indexEnd = unwrap(evaluate(expr.indexEnd));
 		if (obj instanceof GemList && indexStart instanceof Double && indexEnd instanceof Double) {
-			return ((GemList) obj).get(expr.bracket, ((Double) indexStart).intValue(), ((Double) indexEnd).intValue());
+			Object returnVal =  ((GemList) obj).get(expr.bracket, ((Double) indexStart).intValue(), ((Double) indexEnd).intValue());
+			return returnVal;
 		}
 
 		if(obj instanceof String && indexStart instanceof Double && indexEnd instanceof Double){
@@ -384,7 +468,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			if(start < 0 || start > ((String) obj).length() - 1 || start > end || end > ((String) obj).length() - 1){
 				throw new RuntimeError(expr.bracket, "Index " + start + " to " + end + " out of bounds for length " + (((String) obj).length() - 1) );
 			}
-			return ((String)obj).substring(start, end + 1);
+			return wrapString(((String)obj).substring(start, end + 1));
 		}
 
 		if(indexStart instanceof Double && indexEnd instanceof Double)
@@ -454,6 +538,52 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 		throw new Return(value);
 	}
+
+	@Override
+	public Void visitImportStmt(Stmt.Import stmt) {
+		String module = stmt.moduleName;
+		String resolvedPath = resolveImportPath(module, currentSourceFile);
+
+		if (alreadyImported.contains(resolvedPath)) return null;
+		alreadyImported.add(resolvedPath);
+
+		String source = readFile(resolvedPath, stmt.keyword, module);
+		List<Stmt> statements = new Parser(new com.interpreter.gem.Scanner(source).scanTokens()).parse();
+
+		Resolver resolver = new Resolver(this);
+		resolver.resolve(statements);
+
+		interpret(statements);
+		return null;
+	}
+
+	private String readFile(String path, Token keyword, String module) {
+		try {
+			byte[] bytes = Files.readAllBytes(Paths.get(path));
+			return new String(bytes, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new RuntimeError(keyword, "Invalid import: " + module);
+		}
+
+	}
+
+
+	private String resolveImportPath(String moduleName, Path sourceFile) {
+		Path baseDir;
+
+		if (moduleName.startsWith("Gem.")) {
+			baseDir = Paths.get("/home/meow/com/interpreter/internals"); // define GEM_PATH somewhere
+			moduleName = moduleName.replace("Gem.", "");
+		} else if (sourceFile != null) {
+			baseDir = sourceFile.toAbsolutePath().getParent();
+		} else {
+			baseDir = Paths.get("").toAbsolutePath(); // PWD (REPL)
+		}
+
+		String relativePath = moduleName.replace('.', File.separatorChar) + ".gem";
+		return baseDir.resolve(relativePath).toString();
+	}
+
 
 	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {

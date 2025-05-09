@@ -1,14 +1,20 @@
 package com.interpreter.gem;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private ClassType currentClass = ClassType.NONE;
+    private final List<String> internalImports = List.of("String", "Number", "Boolean");
 
     private enum ClassType {
         NONE,
@@ -35,6 +41,27 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
     }
 
+    public List<String> listFileNames(String dirPath) throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dirPath))) {
+            return StreamSupport.stream(stream.spliterator(), false)
+                    .filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private List<String> internalImports() {
+        try {
+            List<String> internal = listFileNames("/home/meow/com/interpreter/internals");
+            System.out.println(internal);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private void resolve(Stmt stmt) {
         stmt.accept(this);
     }
@@ -56,7 +83,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
         Map<String, Boolean> scope = scopes.peek();
         if (scope.containsKey(name.lexeme)) {
-            Gem.error(name, "Already a variable with this name in this scope.");
+            Gem.error(name, "Name already declared in this scope in this scope.");
         }
 
         scope.put(name.lexeme, false);
@@ -103,6 +130,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class stmt) {
         ClassType enclosingClass = currentClass;
         currentClass = ClassType.CLASS;
+
+
+        if(internalImports.contains(stmt.name.lexeme) && interpreter.globals.exists(stmt.name.lexeme)) {
+            Gem.error(stmt.name, "Can't override an internal class.");
+        }
 
         declare(stmt.name);
         define(stmt.name);
@@ -222,6 +254,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolve(stmt.value);
         }
 
+        return null;
+    }
+
+    @Override
+    public Void visitImportStmt(Stmt.Import stmt) {
         return null;
     }
 
