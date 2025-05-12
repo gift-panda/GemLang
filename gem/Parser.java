@@ -1,5 +1,6 @@
 package com.interpreter.gem;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -9,11 +10,13 @@ import static com.interpreter.gem.TokenType.*;
 class Parser{
 	private final List<Token> tokens;
 	private int current = 0;
+	private final Path currentSourceFile;
 
 	private static class ParseError extends RuntimeException {}
-	Parser(List<Token> tokens){
+	Parser(List<Token> tokens, Path currentSourceFile){
 		this.tokens = tokens;
-	}
+        this.currentSourceFile = currentSourceFile;
+    }
 
 	private Expr expression(){
 		return assignment();

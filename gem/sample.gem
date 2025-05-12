@@ -1,2 +1,3 @@
-var a = String("hi");
-println(a + " hola");
+var a = String(String("hi"));
+println(a);
+println([[1,5],2,3,4].length());

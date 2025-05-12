@@ -3,7 +3,7 @@ package com.interpreter.gem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GemList {
+public class GemList{
     private final List<Object> items = new ArrayList<>();
 
     public Object get(Token token, int indexStart, int indexEnd) {
@@ -39,6 +39,10 @@ public class GemList {
 
     public int size() {
         return items.size();
+    }
+
+    public List<Object> getItems() {
+        return items;
     }
 
     @Override

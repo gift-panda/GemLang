@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
@@ -36,11 +35,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	private GemClass stringClass;
 	private GemClass numberClass;
 	private GemClass booleanClass;
+	private GemClass listClass;
 
-	public void setWrappers(GemClass stringCls, GemClass numberCls, GemClass booleanCls) {
+	public void setWrappers(GemClass stringCls, GemClass numberCls, GemClass booleanCls, GemClass listCls) {
 		this.stringClass = stringCls;
 		this.numberClass = numberCls;
 		this.booleanClass = booleanCls;
+		this.listClass = listCls;
 	}
 
 
@@ -140,6 +141,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return stringClass.call(this, List.of(value, value.length()));
 	}
 
+	private Object wrapList(GemList list) {
+		return listClass.call(this, List.of(list, list.size()));
+	}
 
 	private Object wrapBoolean(boolean value) {
 		return booleanClass.call(this, List.of(value));
@@ -165,9 +169,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	public static Object unwrap(Object obj) {
-		if (obj instanceof GemInstance inst && (inst.klass.name().equals("String") || inst.klass.name().equals("Number") || inst.klass.name().equals("Boolean"))) {
+		if (obj instanceof GemInstance inst && (inst.klass.name().equals("String") || inst.klass.name().equals("Number") || inst.klass.name().equals("Boolean") || inst.klass.name().equals("List"))) {
             return inst.get("value"); // assumes wrapper stores it in `.value`
 		}
+
+		return obj;
+	}
+
+	public Object wrap(Object obj) {
+		if(obj instanceof Double){
+			return wrapNumber((Double) obj);
+		}
+		if(obj instanceof String){
+			return wrapString((String) obj);
+		}
+		if(obj instanceof Boolean){
+			return wrapBoolean((Boolean) obj);
+		}
+		if(obj instanceof List){
+			return wrapList((GemList) obj);
+		}
+
 		return obj;
 	}
 
@@ -203,7 +225,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	private Object evaluate(Expr expr){
-	    	return expr.accept(this);
+	    	return (expr.accept(this));
 	}
 
 	private boolean isTruthy(Object object){
@@ -240,7 +262,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				execute(statement);
 			}
 		}catch(RuntimeError error) {
-			Gem.runtimeError(error);
+			Gem.runtimeError(error, error.token);
 		}
 	}
 
@@ -333,6 +355,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return null;
 	}
 
+	public Object unwrapAll(Object obj) {
+		obj = unwrap(obj); // Unwrap once
+
+		if (obj instanceof GemList) {
+			List<Object> result = new ArrayList<>();
+			for (Object item : ((GemList) obj).getItems()) {
+				Object unwrapped = unwrapAll(item);
+				result.add(unwrapped);
+			}
+			return result;
+		}
+
+		return stringify(obj);
+	}
+
+
+
+
 	@Override
 	public Object visitCallExpr(Expr.Call expr) {
 		List<Object> arguments = new ArrayList<>();
@@ -344,9 +384,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
 			Object callee;
 			try {
-				callee = environment.get(new Token(TokenType.IDENTIFIER, mangled, null, varExpr.name.line));
+				callee = environment.get(new Token(TokenType.IDENTIFIER, mangled, null, varExpr.name.line, currentSourceFile));
 			}catch(RuntimeError error){
-				callee = environment.get(new Token(TokenType.IDENTIFIER, varExpr.name.lexeme, null, varExpr.name.line));			}
+				callee = environment.get(new Token(TokenType.IDENTIFIER, varExpr.name.lexeme, null, varExpr.name.line, currentSourceFile));			}
 
 			if (!(callee instanceof GemCallable function)) {
 				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
@@ -354,7 +394,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 			if(callee.toString().equals("<native fn>")){
 				for(int i = 0; i < arguments.size(); i++){
-					arguments.set(i, unwrap(arguments.get(i)));
+					arguments.set(i, unwrapAll(arguments.get(i)));
 				}
 			}
 
@@ -449,17 +489,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		for (Expr elementExpr : expr.elements) {
 			list.add(evaluate(elementExpr));
 		}
-		return list;
+		return wrapList(list);
 	}
 
 	@Override
 	public Object visitGetIndexExpr(Expr.GetIndex expr) {
-		Object obj = unwrap(evaluate(expr.object));
+		Object obj = unwrap(unwrap(evaluate(expr.object)));
+
 		Object indexStart = unwrap(evaluate(expr.indexStart));
 		Object indexEnd = unwrap(evaluate(expr.indexEnd));
 		if (obj instanceof GemList && indexStart instanceof Double && indexEnd instanceof Double) {
 			Object returnVal =  ((GemList) obj).get(expr.bracket, ((Double) indexStart).intValue(), ((Double) indexEnd).intValue());
-			return returnVal;
+			return wrap(returnVal);
 		}
 
 		if(obj instanceof String && indexStart instanceof Double && indexEnd instanceof Double){
@@ -484,7 +525,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object value = evaluate(expr.value);
 		if (obj instanceof GemList && index instanceof Double) {
 			((GemList) obj).set(((Double) index).intValue(), value);
-			return value;
+			return wrap(value);
 		}
 		throw new RuntimeError(expr.bracket, "Only lists can be assigned by index.");
 	}
@@ -544,16 +585,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		String module = stmt.moduleName;
 		String resolvedPath = resolveImportPath(module, currentSourceFile);
 
+		Path currFile = currentSourceFile;
+		this.currentSourceFile = Paths.get(resolvedPath);
+
 		if (alreadyImported.contains(resolvedPath)) return null;
 		alreadyImported.add(resolvedPath);
 
 		String source = readFile(resolvedPath, stmt.keyword, module);
-		List<Stmt> statements = new Parser(new com.interpreter.gem.Scanner(source).scanTokens()).parse();
+		List<Stmt> statements = new Parser(new com.interpreter.gem.Scanner(source, currentSourceFile).scanTokens(), currentSourceFile).parse();
 
-		Resolver resolver = new Resolver(this);
+		Resolver resolver = new Resolver(this, currentSourceFile);
 		resolver.resolve(statements);
 
 		interpret(statements);
+
+		this.currentSourceFile = currFile;
 		return null;
 	}
 

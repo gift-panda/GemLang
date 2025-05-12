@@ -1,0 +1,15 @@
+class List{
+    init(list, len){
+        this.value = list;
+        this.length = len;
+    }
+
+    init(list){
+        this.value = list.value;
+        this.length = list.length;
+    }
+
+    length(){
+        return this.length;
+    }
+}

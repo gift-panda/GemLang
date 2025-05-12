@@ -15,6 +15,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private ClassType currentClass = ClassType.NONE;
     private final List<String> internalImports = List.of("String", "Number", "Boolean");
+    private final Path currentSourceFile;
 
     private enum ClassType {
         NONE,
@@ -31,8 +32,9 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     private FunctionType currentFunction = FunctionType.NONE;
 
-    Resolver(Interpreter interpreter) {
+    Resolver(Interpreter interpreter, Path currentSourceFile) {
         this.interpreter = interpreter;
+        this.currentSourceFile = currentSourceFile;
     }
 
     void resolve(List<Stmt> statements) {

@@ -1,5 +1,6 @@
 package com.interpreter.gem;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ class Scanner {
 	private int current = 0;
 	private int line = 1;
 	private static final Map<String, TokenType> keywords;
+	private final Path currentSourceFile;
 
 	static{
     		keywords = new HashMap<>();
@@ -35,9 +37,10 @@ class Scanner {
 			keywords.put("import", IMPORT);
   	}
 
-  	Scanner(String source) {
+  	Scanner(String source, Path currentSourceFile) {
     		this.source = source;
-	}
+        this.currentSourceFile = currentSourceFile;
+    }
 
 	List<Token> scanTokens(){
 		while(!isAtEnd()){
@@ -45,7 +48,7 @@ class Scanner {
 			scanToken();
 		}
 
-		tokens.add(new Token(EOF, "", null, line));
+		tokens.add(new Token(EOF, "", null, line, currentSourceFile));
 		return tokens;
 	}
 
@@ -94,7 +97,7 @@ class Scanner {
 				else if(isAlpha(c))
 					identifier();
 				else
-				  	Gem.error(line, "Unexpected character.");
+				  	Gem.error(line, "Unexpected character.", currentSourceFile);
 				break;
     		}
   	}
@@ -107,7 +110,7 @@ class Scanner {
 	}
 	private void addToken(TokenType type, Object literal){
 		String text = source.substring(start, current);
-		tokens.add(new Token(type, text, literal, line));
+		tokens.add(new Token(type, text, literal, line, currentSourceFile));
 	}
 	private boolean match(char expected){
 		if(isAtEnd()) return false;
@@ -127,7 +130,7 @@ class Scanner {
 		}
 
 		if(isAtEnd()){
-			Gem.error(line, "Unterminated String.");
+			Gem.error(line, "Unterminated String.", currentSourceFile);
 			return;
 		}
 

@@ -14,7 +14,7 @@ public class FunctionDispatcher implements GemCallable {
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         String mangled = Interpreter.mangleName(baseName, arguments.size());
-        Object target = closure.get(new Token(TokenType.IDENTIFIER, mangled, null, -1));
+        Object target = closure.get(mangled);
 
         if (!(target instanceof GemCallable callable)) {
             throw new RuntimeError(null, "No matching overload for '" + baseName + "' with " + arguments.size() + " arguments.");
