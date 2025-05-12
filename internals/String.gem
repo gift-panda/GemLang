@@ -1,5 +1,5 @@
 class String{
-    init(value, length){
+    #init(value, length){
         this.value = value;
         this.length = length;
     }

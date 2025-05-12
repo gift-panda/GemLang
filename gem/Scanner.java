@@ -207,13 +207,20 @@ class Scanner {
 		while(isAlphaNumeric(peek())) advance();
 		
 		String text = source.substring(start, current);
+
+		if(text.substring(1).contains("#")){
+			Gem.error(line, "'#' should appear only at the beginning of identifier.", currentSourceFile);
+		}
+
 		TokenType type = keywords.get(text);
 		if(type == null) type = IDENTIFIER;
+
+
 
 		addToken(type);
 	}
 	private boolean isAlpha(char c){
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '#';
 	}
 	private boolean isAlphaNumeric(char c){
 		return isAlpha(c) || isDigit(c);

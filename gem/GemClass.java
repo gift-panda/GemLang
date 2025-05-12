@@ -30,8 +30,23 @@ public class GemClass implements GemCallable{
             initializer.bind(instance).call(interpreter, arguments);
         }
 
+
         return instance;
     }
+
+    public Object call(Interpreter interpreter, List<Object> arguments, boolean force) {
+        GemInstance instance = new GemInstance(this);
+
+        String mangled = Interpreter.mangleName("#init", arguments.size());
+        GemFunction initializer = findMethod(mangled);
+
+        if (initializer != null) {
+            initializer.bind(instance).call(interpreter, arguments);
+        }
+
+        return instance;
+    }
+
 
     public boolean hasOverloadedMethod(String baseName) {
         for (String methodName : methods.keySet()) {

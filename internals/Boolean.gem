@@ -1,6 +1,9 @@
 class Boolean{
-    init(value){
+    #init(value){
         this.value = value;
+    }
+    init(value){
+        this.value = value.value;
     }
     isFalse(){
         return !this.value;

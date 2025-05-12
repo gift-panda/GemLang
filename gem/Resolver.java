@@ -197,6 +197,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         if (stmt.initializer != null) {
             resolve(stmt.initializer);
         }
+
+        if(stmt.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
+            Gem.error(stmt.name, "Private variables can only exist within classes.");
+        }
+
         define(stmt.name);
         return null;
     }
@@ -208,6 +213,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Gem.error(expr.name, "Can't read local variable in its own initializer.");
         }
 
+        if(expr.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
+            Gem.error(expr.name, "Private variables can only exist within classes.");
+        }
+
         resolveLocal(expr, expr.name);
         return null;
     }
@@ -216,6 +225,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitAssignExpr(Expr.Assign expr) {
         resolve(expr.value);
         resolveLocal(expr, expr.name);
+
+        if(expr.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
+            Gem.error(expr.name, "Private variables can only exist within classes.");
+        }
+
         return null;
     }
 
@@ -292,6 +306,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitGetExpr(Expr.Get expr) {
         resolve(expr.object);
+
+        if(expr.name.lexeme.charAt(0) == '#' && !(expr.object instanceof Expr.This)) {
+            Gem.error(expr.name, "Cannot access private fields of this instance.");
+        }
+
         return null;
     }
 
@@ -304,7 +323,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitThisExpr(Expr.This expr) {
-
         if(currentClass == ClassType.NONE) {
             Gem.error(expr.keyword, "Can't use 'this' outside of a class.");
             return null;

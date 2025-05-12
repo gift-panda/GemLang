@@ -1,5 +1,5 @@
 class List{
-    init(list, len){
+    #init(list, len){
         this.value = list;
         this.length = len;
     }

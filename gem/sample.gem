@@ -1,3 +1,2 @@
-var a = String(String("hi"));
-println(a);
-println([[1,5],2,3,4].length());
+var num = [1,2,3];
+println("Gem: " + num);

@@ -69,8 +69,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
-		Object leftRaw = unwrap(left);
-		Object rightRaw = unwrap(right);
+		Object leftRaw = unwrapAll(left);
+		Object rightRaw = unwrapAll(right);
 
 		switch (expr.operator.type) {
 			case BANG_EQUAL:
@@ -134,20 +134,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	private Object wrapNumber(double value) {
-		return numberClass.call(this, List.of(value));
+		return numberClass.call(this, List.of(value), true);
 	}
 
 	private Object wrapString(String value) {
-		return stringClass.call(this, List.of(value, value.length()));
+		return stringClass.call(this, List.of(value, value.length()), true);
 	}
 
 	private Object wrapList(GemList list) {
-		return listClass.call(this, List.of(list, list.size()));
+		return listClass.call(this, List.of(list, list.size()), true);
 	}
 
-	private Object wrapBoolean(boolean value) {
-		return booleanClass.call(this, List.of(value));
-	}
+	private Object wrapBoolean(boolean value) { return booleanClass.call(this, List.of(value), true); }
 
 	@Override
 	public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -159,11 +157,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object value = expr.value;
 
 		if (value instanceof String) {
-			return stringClass.call(this, List.of(value, ((String) value).length()));
+			return stringClass.call(this, List.of(value, ((String) value).length()), true);
 		} else if (value instanceof Double) {
-			return numberClass.call(this, List.of(value));
+			return numberClass.call(this, List.of(value), true);
 		} else if (value instanceof Boolean) {
-			return booleanClass.call(this, List.of(value));
+			return booleanClass.call(this, List.of(value), true);
 		}
 		return value;
 	}
@@ -383,6 +381,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		if (expr.callee instanceof Expr.Variable varExpr) {
 			String mangled = mangleName(varExpr.name.lexeme, arguments.size());
 			Object callee;
+
 			try {
 				callee = environment.get(new Token(TokenType.IDENTIFIER, mangled, null, varExpr.name.line, currentSourceFile));
 			}catch(RuntimeError error){
@@ -392,6 +391,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
 			}
 
+			//System.out.println(callee instanceof GemClass);
+
 			if(callee.toString().equals("<native fn>")){
 				for(int i = 0; i < arguments.size(); i++){
 					arguments.set(i, unwrapAll(arguments.get(i)));
@@ -399,6 +400,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			}
 
 			Object result = function.call(this, arguments);
+
+			if(callee instanceof GemClass && (result instanceof GemInstance && unwrap(result) == null)){
+				throw new RuntimeError(expr.paren, "Can't find constructor for class with " + arguments.size() + " arguments.");
+			}
 
 
 			if(result instanceof Boolean)
@@ -435,9 +440,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			}
 		}
 
-
 		Object callee = evaluate(expr.callee);
-
 		if (!(callee instanceof GemCallable function)) {
 			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
 		}
@@ -456,14 +459,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Object visitGetExpr(Expr.Get expr) {
-		Object object = evaluate(expr.object);if(object != null)
-		if (object instanceof GemInstance instance) {
-			Object value = instance.get(expr.name);
+		Object object = evaluate(expr.object);
+		if(object != null) {
+			if (object instanceof GemInstance instance) {
+				Object value = instance.get(expr.name);
 
-			if (value instanceof GemFunction function) {
-				return function.bind(instance);
+				if (value instanceof GemFunction function) {
+					return function.bind(instance);
+				}
+				return value;
 			}
-			return value;
 		}
 
 		throw new RuntimeError(expr.name, "Only instances have properties.");

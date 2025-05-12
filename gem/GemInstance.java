@@ -37,11 +37,7 @@ public class GemInstance {
     }
 
     public Object get(String name) {
-        Object value = fields.get(name);
-        if(value != null) return value;
-
-
-        return null;
+        return fields.get(name);
     }
 
 
