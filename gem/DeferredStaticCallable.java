@@ -16,7 +16,7 @@ public class DeferredStaticCallable implements GemCallable {
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
         String mangled = Interpreter.mangleName(name, arguments.size());
-        GemFunction method = klass.getStatic(mangled);
+        GemFunction method = klass.getStaticMethod(mangled);
         if (method == null) {
             throw new RuntimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
         }

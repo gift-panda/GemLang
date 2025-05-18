@@ -1,4 +1,20 @@
 import Gem.Math;
 
-var a = Math.pow(100, 1);
-println(a);
+class Counter{
+    var count = 0;
+    execute(){
+        Counter.count = Counter.count + 1;
+        println("executed " + Counter.count + " times");
+    }
+}
+
+var c = Counter();
+
+c.execute();
+c.execute();
+c.execute();
+c.execute();
+
+var d = Counter();
+d.execute();
+c.execute();

@@ -336,8 +336,12 @@ class Parser{
 
 		List<Stmt.Function> methods = new ArrayList<>();
 		List<Stmt.Function> staticMethods = new ArrayList<>();
+		List<Stmt.Var> staticFields = new ArrayList<>();
 		while(!check(RIGHT_BRACE) && !isAtEnd()){
-			if(match(STATIC)){
+			if(match(VAR)){
+				staticFields.add(varDeclaration());
+			}
+			else if(match(STATIC)){
 				staticMethods.add(function("method"));
 			}
 			else
@@ -346,7 +350,7 @@ class Parser{
 
 		consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-		return new Stmt.Class(name, superClass, methods, staticMethods);
+		return new Stmt.Class(name, superClass, methods, staticMethods, staticFields);
 	}
 
 	private Stmt returnStatement(){
@@ -454,7 +458,7 @@ class Parser{
 		}
 	}
 
-	private Stmt varDeclaration(){
+	private Stmt.Var varDeclaration(){
 		Token name = consume(IDENTIFIER, "Expected variable name.");
 
 		Expr initializer = null;

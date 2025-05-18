@@ -9,12 +9,14 @@ public class GemClass implements GemCallable{
     public final Map<String, GemFunction> methods;
     final GemClass superclass;
     public final Map<String, GemFunction> staticMethods;
+    public final Map<String, Object> staticFields;
 
-    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods, Map<String, GemFunction> staticMethods) {
+    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods, Map<String, GemFunction> staticMethods, Map<String, Object> staticFields) {
         this.name = name;
         this.methods = methods;
         this.superclass = superclass;
         this.staticMethods = staticMethods;
+        this.staticFields = staticFields;
     }
 
     @Override
@@ -60,7 +62,14 @@ public class GemClass implements GemCallable{
         return false;
     }
 
-
+    public boolean hasOverloadedStaticMethod(String baseName) {
+        for (String methodName : staticMethods.keySet()) {
+            if (methodName.equals(baseName) || methodName.startsWith(baseName + "$")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public int arity() {
@@ -86,13 +95,32 @@ public class GemClass implements GemCallable{
         return null;
     }
 
-    public GemFunction getStatic(String name) {
+    public GemFunction getStaticMethod(String name){
         if(staticMethods.containsKey(name)) {
             return staticMethods.get(name);
         }
         if(superclass != null) {
-            return superclass.getStatic(name);
+            return superclass.getStaticMethod(name);
         }
         return null;
+    }
+
+    public Object getStaticField(String name){
+        if(staticFields.containsKey(name)) {
+            return staticFields.get(name);
+        }
+        if(superclass != null) {
+            return superclass.getStaticField(name);
+        }
+        return null;
+    }
+
+    public void setStaticField(String name, Object value){
+        if(staticFields.containsKey(name)) {
+            staticFields.put(name, value);
+        }
+        if(superclass != null) {
+            superclass.setStaticField(name, value);
+        }
     }
 }

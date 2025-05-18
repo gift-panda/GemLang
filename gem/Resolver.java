@@ -174,6 +174,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             resolveFunction(method, declaration);
         }
 
+        for(Stmt.Var var : stmt.staticFields){
+            declare(var.name);
+            if(var.initializer != null){
+                resolve(var.initializer);
+            }
+
+            define(var.name);
+        }
+
         endScope();
 
         if(stmt.superclass != null) {

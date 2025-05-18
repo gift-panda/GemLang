@@ -478,8 +478,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				return value;
 			}
 			if(object instanceof GemClass clazz) {
-				Object value = new DeferredStaticCallable(clazz, expr.name.lexeme, expr.name);
-				return value;
+				if(clazz.hasOverloadedStaticMethod(expr.name.lexeme)) {
+					Object value = new DeferredStaticCallable(clazz, expr.name.lexeme, expr.name);
+					return value;
+				}
+				else{
+					Object value = clazz.getStaticField(expr.name.lexeme);
+					return value;
+				}
 			}
 		}
 
@@ -490,6 +496,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	@Override
 	public Object visitSetExpr(Expr.Set expr) {
 		Object object = evaluate(expr.object);
+
+		if(object instanceof GemClass clazz) {
+			Object value = evaluate(expr.value);
+			clazz.setStaticField(expr.name.lexeme, value);
+			return value;
+		}
 
 		if(!(object instanceof GemInstance)){
 			throw new RuntimeError(expr.name, "Cannot set property of non-instance '" + expr.name + "'.");
@@ -669,6 +681,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 		Map<String, GemFunction> methods = new HashMap<>();
 		Map<String, GemFunction> staticMethods = new HashMap<>();
+		Map<String, Object> staticFields = new HashMap<>();
 
 		for (Stmt.Function method : stmt.methods) {
 			String name = method.name.lexeme;
@@ -688,7 +701,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			staticMethods.put(mangled, new GemFunction(method, environment, false));
 		}
 
-		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods, staticMethods);
+		for(Stmt.Var var: stmt.staticFields){
+			String name = var.name.lexeme;
+			Object value = null;
+			if(var.initializer != null){
+				value = evaluate(var.initializer);
+			}
+			staticFields.put(name, value);
+		}
+
+		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods, staticMethods, staticFields);
 
 		if(superclass != null){
 			environment = environment.enclosing;
