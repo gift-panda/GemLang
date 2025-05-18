@@ -1,2 +1,4 @@
-var num = [1,2,3];
-println("Gem: " + num);
+import Gem.Math;
+
+var a = Math.pow(100, 1);
+println(a);

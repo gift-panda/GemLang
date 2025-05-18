@@ -27,7 +27,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE,
         FUNCTION,
         METHOD,
-        INITIALIZER
+        INITIALIZER,
+        STATIC
     }
 
     private FunctionType currentFunction = FunctionType.NONE;
@@ -163,6 +164,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             if(method.name.lexeme.equals("init")) {
                 declaration = FunctionType.INITIALIZER;
             }
+
+            resolveFunction(method, declaration);
+        }
+
+        for (Stmt.Function method : stmt.staticMethods) {
+            FunctionType declaration = FunctionType.STATIC;
 
             resolveFunction(method, declaration);
         }
@@ -325,6 +332,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitThisExpr(Expr.This expr) {
         if(currentClass == ClassType.NONE) {
             Gem.error(expr.keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+
+        if(currentFunction == FunctionType.STATIC){
+            Gem.error(expr.keyword, "No instance of this in a static function.");
             return null;
         }
 

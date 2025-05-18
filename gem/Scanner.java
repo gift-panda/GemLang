@@ -35,6 +35,7 @@ class Scanner {
     		keywords.put("var",    VAR);
     		keywords.put("while",  WHILE);
 			keywords.put("import", IMPORT);
+			keywords.put("static", STATIC);
   	}
 
   	Scanner(String source, Path currentSourceFile) {

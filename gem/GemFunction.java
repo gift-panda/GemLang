@@ -17,7 +17,7 @@ public class GemFunction implements GemCallable{
 	public Object call(Interpreter interpreter, List<Object> arguments){
 		Environment environment = new Environment(closure);
 		for(int i = 0; i < declaration.params.size(); i++){
-			environment.define(declaration.params.get(i).lexeme,arguments.get(i));
+			environment.define(declaration.params.get(i).lexeme, arguments.get(i));
 		}
 
 		try {
@@ -50,6 +50,12 @@ public class GemFunction implements GemCallable{
 	public GemFunction bind(GemInstance instance) {
 		Environment environment = new Environment(closure);
 		environment.define("this", instance);
+		return new GemFunction(declaration, environment, isInitializer);
+	}
+
+	public GemFunction staticBind() {
+		Environment environment = new Environment(closure);
+		environment.define("hum" , "hi");
 		return new GemFunction(declaration, environment, isInitializer);
 	}
 }

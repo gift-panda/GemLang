@@ -64,6 +64,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 
+	boolean nearlyEqualRel(double a, double b, double relTol, double absTol) {
+		return Math.abs(a - b) <= Math.max(relTol * Math.max(Math.abs(a), Math.abs(b)), absTol);
+	}
+
+
 	@Override
 	public Object visitBinaryExpr(Expr.Binary expr) {
 		Object left = evaluate(expr.left);
@@ -240,6 +245,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	private boolean isEqual(Object a, Object b) {
 		if (a == null && b == null) return true;
 		if (a == null) return false;
+		if(a instanceof Double d1 && b instanceof Double d2){
+			return nearlyEqualRel(d1, d2, 1e-9, 1e-12);
+		}
 
 		return a.equals(b);
 	}
@@ -268,7 +276,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		stmt.accept(this);
 	}
 
-	private String stringify(Object object){
+	private Object stringify(Object object){
 		if(object == null) return "nil";
 
 		if(object instanceof Double){
@@ -276,7 +284,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			if(text.endsWith(".0")){
 				text = text.substring(0, text.length() - 2);
 			}
-			return text;
+			return Double.parseDouble(text);
 		}
 
 		return object.toString();
@@ -469,6 +477,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				}
 				return value;
 			}
+			if(object instanceof GemClass clazz) {
+				Object value = new DeferredStaticCallable(clazz, expr.name.lexeme, expr.name);
+				return value;
+			}
 		}
 
 		throw new RuntimeError(expr.name, "Only instances have properties.");
@@ -540,12 +552,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Environment previous = this.environment;
 		try{
 			this.environment = environment;
-
 			for(Stmt statement: statements) {
 				execute(statement);
 			}
+			//System.out.println("Statements executed.");
 		}
 		finally{
+			//System.out.println(this.environment.values);
 			this.environment = previous;
 		}
 	}
@@ -655,6 +668,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
 		Map<String, GemFunction> methods = new HashMap<>();
+		Map<String, GemFunction> staticMethods = new HashMap<>();
 
 		for (Stmt.Function method : stmt.methods) {
 			String name = method.name.lexeme;
@@ -665,8 +679,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			methods.put(mangled, new GemFunction(method, environment, isInit));
 		}
 
+		for (Stmt.Function method : stmt.staticMethods) {
+			String name = method.name.lexeme;
+			int arity = method.params.size();
+			if(name.equals("init")){throw new RuntimeError(method.name, "Init cannot be static");}
 
-		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods);
+			String mangled = mangleName(name, arity);
+			staticMethods.put(mangled, new GemFunction(method, environment, false));
+		}
+
+		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods, staticMethods);
 
 		if(superclass != null){
 			environment = environment.enclosing;

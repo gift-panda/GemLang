@@ -252,6 +252,7 @@ class Parser{
 		throw error(peek(), "Expect expression.");
 	}
 
+
 	// Other tools
 	private Token consume(TokenType type, String message) {
 		if (check(type)) return advance();
@@ -334,13 +335,18 @@ class Parser{
 		consume(LEFT_BRACE, "Expect class body.");
 
 		List<Stmt.Function> methods = new ArrayList<>();
+		List<Stmt.Function> staticMethods = new ArrayList<>();
 		while(!check(RIGHT_BRACE) && !isAtEnd()){
-			methods.add(function("method"));
+			if(match(STATIC)){
+				staticMethods.add(function("method"));
+			}
+			else
+				methods.add(function("method"));
 		}
 
 		consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-		return new Stmt.Class(name, superClass, methods);
+		return new Stmt.Class(name, superClass, methods, staticMethods);
 	}
 
 	private Stmt returnStatement(){

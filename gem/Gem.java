@@ -106,6 +106,7 @@ public class Gem {
 
 	private static void report(int line, String where, String message, Path file) {
 		System.err.println("[Line " + line + "] Error" + where + ": " + message + "\nIn file " + file.getFileName());
+		System.exit(0);
 		hadError = true;
 	}
 
@@ -119,6 +120,7 @@ public class Gem {
 
 	static void runtimeError(RuntimeError error, Token name){
 		System.err.println("[Line " + error.token.line + "] " + error.getMessage() + "\nIn file " + name.sourceFile.getFileName());
+		System.exit(0);
 		hadRuntimeError = true;
 	}
 }

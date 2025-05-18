@@ -1,5 +1,6 @@
 package com.interpreter.gem;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -7,11 +8,13 @@ public class GemClass implements GemCallable{
     final private String name;
     public final Map<String, GemFunction> methods;
     final GemClass superclass;
+    public final Map<String, GemFunction> staticMethods;
 
-    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods) {
+    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods, Map<String, GemFunction> staticMethods) {
         this.name = name;
         this.methods = methods;
         this.superclass = superclass;
+        this.staticMethods = staticMethods;
     }
 
     @Override
@@ -79,6 +82,16 @@ public class GemClass implements GemCallable{
         }
         if(superclass != null) {
             return superclass.findMethod(name);
+        }
+        return null;
+    }
+
+    public GemFunction getStatic(String name) {
+        if(staticMethods.containsKey(name)) {
+            return staticMethods.get(name);
+        }
+        if(superclass != null) {
+            return superclass.getStatic(name);
         }
         return null;
     }
