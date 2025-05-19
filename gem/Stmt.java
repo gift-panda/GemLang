@@ -131,10 +131,11 @@ abstract class Stmt {
     final Token keyword;
   }
   static class Function extends Stmt {
-    Function(Token name, List<Token> params, List<Stmt> body) {
+    Function(Token name, List<Token> params, List<Stmt> body, String parent) {
       this.name = name;
       this.params = params;
       this.body = body;
+      this.parent = parent;
     }
 
 	@Override
@@ -145,6 +146,7 @@ abstract class Stmt {
     final Token name;
     final List<Token> params;
     final List<Stmt> body;
+    final String parent;
   }
 
 	abstract <R> R accept(Visitor<R> visitor);

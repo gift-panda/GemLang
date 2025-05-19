@@ -17,6 +17,10 @@ public class GemClass implements GemCallable{
         this.superclass = superclass;
         this.staticMethods = staticMethods;
         this.staticFields = staticFields;
+
+        for(String fieldName : staticFields.keySet()){
+            Interpreter.scopes.define(fieldName, this.name());
+        }
     }
 
     @Override
@@ -118,6 +122,7 @@ public class GemClass implements GemCallable{
     public void setStaticField(String name, Object value){
         if(staticFields.containsKey(name)) {
             staticFields.put(name, value);
+            System.out.println(staticFields);
         }
         if(superclass != null) {
             superclass.setStaticField(name, value);

@@ -26,7 +26,7 @@ public class GemInstance {
         if (value != null) return value;
 
         if (klass.hasOverloadedMethod(name.lexeme)) {
-            return new DeferredCallable(this, name.lexeme, name);
+            return new DeferredCallable(this, name.lexeme, name, klass.name());
         }
 
 
@@ -42,6 +42,7 @@ public class GemInstance {
 
 
     public void set(Token name, Object value) {
+        Interpreter.scopes.define(name.lexeme, klass.name());
         fields.put(name.lexeme, value);
     }
 }

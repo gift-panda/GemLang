@@ -6,11 +6,13 @@ public class GemFunction implements GemCallable{
 	private final Stmt.Function declaration;
 	private final Environment closure;
 	private final boolean isInitializer;
+	public final String parent;
 
-	GemFunction(Stmt.Function declaration, Environment closure, boolean isInitializer){
+	GemFunction(Stmt.Function declaration, Environment closure, boolean isInitializer, String currentClass){
 		this.declaration = declaration;
         this.closure = closure;
         this.isInitializer = isInitializer;
+        this.parent = currentClass;
     }
 
 	@Override
@@ -19,9 +21,8 @@ public class GemFunction implements GemCallable{
 		for(int i = 0; i < declaration.params.size(); i++){
 			environment.define(declaration.params.get(i).lexeme, arguments.get(i));
 		}
-
 		try {
-			interpreter.executeBlock(declaration.body, environment);
+			interpreter.executeBlock(declaration.body, environment, parent);
 		}catch(Return returnValue){
 			if(isInitializer){
 				return closure.getAt(0, "this");
@@ -50,12 +51,12 @@ public class GemFunction implements GemCallable{
 	public GemFunction bind(GemInstance instance) {
 		Environment environment = new Environment(closure);
 		environment.define("this", instance);
-		return new GemFunction(declaration, environment, isInitializer);
+		return new GemFunction(declaration, environment, isInitializer, parent);
 	}
 
 	public GemFunction staticBind() {
 		Environment environment = new Environment(closure);
 		environment.define("hum" , "hi");
-		return new GemFunction(declaration, environment, isInitializer);
+		return new GemFunction(declaration, environment, isInitializer, parent);
 	}
 }

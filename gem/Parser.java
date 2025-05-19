@@ -10,12 +10,12 @@ import static com.interpreter.gem.TokenType.*;
 class Parser{
 	private final List<Token> tokens;
 	private int current = 0;
-	private final Path currentSourceFile;
+	private String currentClass = null;
 
 	private static class ParseError extends RuntimeException {}
 	Parser(List<Token> tokens, Path currentSourceFile){
 		this.tokens = tokens;
-        this.currentSourceFile = currentSourceFile;
+
     }
 
 	private Expr expression(){
@@ -222,7 +222,7 @@ class Parser{
 		if(match(THIS)) return new Expr.This(previous());
 
 		if(match(IDENTIFIER)){
-			return new Expr.Variable(previous());
+			return new Expr.Variable(previous(), currentClass);
 		}
 
 		if(match(SUPER)){
@@ -329,8 +329,11 @@ class Parser{
 		Expr.Variable superClass = null; //Add a universal super class here
 		if(match(COLON)){
 			consume(IDENTIFIER, "Expect ':' after class name.");
-			superClass = new Expr.Variable(previous());
+			superClass = new Expr.Variable(previous(), currentClass);
 		}
+
+		String prevClass = currentClass;
+		currentClass = name.lexeme;
 
 		consume(LEFT_BRACE, "Expect class body.");
 
@@ -349,6 +352,8 @@ class Parser{
 		}
 
 		consume(RIGHT_BRACE, "Expect '}' after class body.");
+
+		currentClass = prevClass;
 
 		return new Stmt.Class(name, superClass, methods, staticMethods, staticFields);
 	}
@@ -485,7 +490,7 @@ class Parser{
 
 		consume(LEFT_BRACE, "Expected '{' after " + kind + " body.");
 		List<Stmt> body = block();
-		return new Stmt.Function(name, parameters, body);
+		return new Stmt.Function(name, parameters, body, currentClass);
 	}
 
 

@@ -6,11 +6,13 @@ public class DeferredCallable implements GemCallable {
     private final GemInstance instance;
     private final String name;
     private final Token keyword;
+    public String parent;
 
-    public DeferredCallable(GemInstance instance, String name, Token keyword) {
+    public DeferredCallable(GemInstance instance, String name, Token keyword, String parent) {
         this.instance = instance;
         this.name = name;
         this.keyword = keyword;
+        this.parent = parent;
     }
 
     @Override

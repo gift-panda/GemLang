@@ -6,11 +6,13 @@ public class DeferredStaticCallable implements GemCallable {
     private final GemClass klass;
     private final String name;
     private final Token keyword;
+    public String parent;
 
-    public DeferredStaticCallable(GemClass instance, String name, Token keyword) {
+    public DeferredStaticCallable(GemClass instance, String name, Token keyword, String parent) {
         this.klass = instance;
         this.name = name;
         this.keyword = keyword;
+        this.parent = parent;
     }
 
     @Override

@@ -14,9 +14,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	public final Environment globals = new Environment();
 	private Environment environment = globals;
+	static public final Environment scopes = new Environment();
 	private final Map<Expr, Integer> locals = new HashMap<>();
 	public Path currentSourceFile = null;
 	private final List<String> alreadyImported = new ArrayList<>();
+	private String currentClass = "~";
 
 	Interpreter(){
 		try {
@@ -303,6 +305,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			value = evaluate(stmt.initializer);
 		}
 
+		scopes.define(stmt.name.lexeme, currentClass);
 		environment.define(stmt.name.lexeme, value);
 		return null;
 
@@ -325,7 +328,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Void visitBlockStmt(Stmt.Block stmt){
-		executeBlock(stmt.statements, new Environment(environment));
+		executeBlock(stmt.statements, new Environment(environment), currentClass);
 		return null;
 	}
 
@@ -376,9 +379,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return stringify(obj);
 	}
 
-
-
-
 	@Override
 	public Object visitCallExpr(Expr.Call expr) {
 		List<Object> arguments = new ArrayList<>();
@@ -398,8 +398,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			if (!(callee instanceof GemCallable function)) {
 				throw new RuntimeError(varExpr.name, "Can only call functions and classes.");
 			}
-
-			//System.out.println(callee instanceof GemClass);
 
 			if(callee.toString().equals("<native fn>")){
 				for(int i = 0; i < arguments.size(); i++){
@@ -424,30 +422,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			return result;
 		}
 
-		if (expr.callee instanceof Expr.Get getExpr) {
-			Object object = evaluate(getExpr.object);
-			if (object instanceof GemInstance instance) {
-				String mangled = mangleName(getExpr.name.lexeme, arguments.size());
-				GemFunction method = instance.klass.findMethod(mangled);
-
-				if (method == null) {
-					throw new RuntimeError(getExpr.name, "Undefined method '" +
-							getExpr.name.lexeme + "' with " + arguments.size() + " arguments.");
-				}
-
-				Object result =  method.bind(instance).call(this, arguments);
-
-				if(result instanceof Boolean)
-					return wrapBoolean((Boolean) result);
-				else if(result instanceof Double)
-					return wrapNumber((Double) result);
-				else if(result instanceof String)
-					return wrapString((String) result);
-
-				return result;
-			}
-		}
-
 		Object callee = evaluate(expr.callee);
 		if (!(callee instanceof GemCallable function)) {
 			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
@@ -469,22 +443,49 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Object visitGetExpr(Expr.Get expr) {
 		Object object = evaluate(expr.object);
 		if(object != null) {
-			if (object instanceof GemInstance instance) {
+			if (object instanceof GemInstance instance){
 				Object value = instance.get(expr.name);
-
-				if (value instanceof GemFunction function) {
-					return function.bind(instance);
+				if (value instanceof DeferredCallable function) {
+					if(expr.name.lexeme.charAt(0) != '#'){
+						return function;
+					}
+					if(expr.name.lexeme.charAt(0) == '#' && currentClass.equals(function.parent)) {
+						return function;
+					}
+					Gem.error(expr.name, "Cannot access private method from current scope.");
 				}
-				return value;
+				else{
+					if(expr.name.lexeme.charAt(0) != '#'){
+						return value;
+					}
+					if(expr.name.lexeme.charAt(0) == '#' && currentClass.equals(scopes.get(expr.name))){
+						return value;
+					}
+					Gem.error(expr.name, "Cannot access private field from current scope.");
+				}
 			}
 			if(object instanceof GemClass clazz) {
 				if(clazz.hasOverloadedStaticMethod(expr.name.lexeme)) {
-					Object value = new DeferredStaticCallable(clazz, expr.name.lexeme, expr.name);
-					return value;
+					DeferredStaticCallable value = new DeferredStaticCallable(clazz, expr.name.lexeme, expr.name, clazz.name());
+					if(expr.name.lexeme.charAt(0) != '#'){
+						return value;
+					}
+					if(expr.name.lexeme.charAt(0) == '#' && currentClass.equals(value.parent)) {
+						return value;
+					}
+
+					Gem.error(expr.name, "Cannot access private method from current scope.");
 				}
 				else{
 					Object value = clazz.getStaticField(expr.name.lexeme);
-					return value;
+
+					if(expr.name.lexeme.charAt(0) != '#'){
+						return value;
+					}
+					if(expr.name.lexeme.charAt(0) == '#' && currentClass.equals(scopes.get(expr.name))){
+						return value;
+					}
+					Gem.error(expr.name, "Cannot access private field from current scope.");
 				}
 			}
 		}
@@ -560,17 +561,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 
-	void executeBlock(List<Stmt> statements, Environment environment){
+	void executeBlock(List<Stmt> statements, Environment environment, String clazz){
 		Environment previous = this.environment;
+		String prevClass = currentClass;
 		try{
+			this.currentClass = clazz;
 			this.environment = environment;
 			for(Stmt statement: statements) {
 				execute(statement);
 			}
-			//System.out.println("Statements executed.");
 		}
 		finally{
-			//System.out.println(this.environment.values);
+			this.currentClass = prevClass;
 			this.environment = previous;
 		}
 	}
@@ -578,13 +580,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Void visitFunctionStmt(Stmt.Function stmt) {
 		// Mangle the name by arity
 		String mangledName = mangleName(stmt.name.lexeme, stmt.params.size());
-		GemFunction function = new GemFunction(stmt, environment, false);
+		GemFunction function = new GemFunction(stmt, environment, false, stmt.parent);
 		environment.define(mangledName, function);
 
 		String mangled = mangleName(stmt.name.lexeme, stmt.params.size());
 		environment.define(mangled, function);
 
-// If base name not defined, define dispatcher
 		if (!environment.exists(stmt.name.lexeme)) {
 			environment.define(stmt.name.lexeme,
 					new FunctionDispatcher(stmt.name.lexeme, environment));
@@ -689,7 +690,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			boolean isInit = name.equals("init");
 
 			String mangled = mangleName(name, arity);
-			methods.put(mangled, new GemFunction(method, environment, isInit));
+			methods.put(mangled, new GemFunction(method, environment, isInit, method.parent));
 		}
 
 		for (Stmt.Function method : stmt.staticMethods) {
@@ -698,7 +699,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			if(name.equals("init")){throw new RuntimeError(method.name, "Init cannot be static");}
 
 			String mangled = mangleName(name, arity);
-			staticMethods.put(mangled, new GemFunction(method, environment, false));
+			staticMethods.put(mangled, new GemFunction(method, environment, false, method.parent));
 		}
 
 		for(Stmt.Var var: stmt.staticFields){
@@ -737,10 +738,3 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		return new DeferredSuperCallable(superclass, object, expr.method.lexeme, expr.keyword);
 	}
 }
-
-
-
-
-
-
-

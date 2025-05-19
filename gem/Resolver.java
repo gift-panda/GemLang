@@ -323,9 +323,9 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitGetExpr(Expr.Get expr) {
         resolve(expr.object);
 
-        if(expr.name.lexeme.charAt(0) == '#' && !(expr.object instanceof Expr.This)) {
-            Gem.error(expr.name, "Cannot access private fields of this instance.");
-        }
+        //if(expr.name.lexeme.charAt(0) == '#' && !(expr.object instanceof Expr.This)) {
+          //  Gem.error(expr.name, "Cannot access private fields of this instance.");
+        //}
 
         return null;
     }

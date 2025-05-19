@@ -105,8 +105,9 @@ abstract class Expr {
     final Expr right;
   }
   static class Variable extends Expr {
-    Variable(Token name) {
+    Variable(Token name, String parent) {
       this.name = name;
+      this.parent = parent;
     }
 
 	@Override
@@ -115,6 +116,7 @@ abstract class Expr {
 	}
 
     final Token name;
+    final String parent;
   }
   static class Call extends Expr {
     Call(Expr callee, Token paren, List<Expr> arguments) {

@@ -20,7 +20,7 @@ public class GenerateAst{
       			"Literal  : Object value",
 			"Logical  : Expr left, Token operator, Expr right",
       			"Unary    : Token operator, Expr right",
-			"Variable : Token name",
+			"Variable : Token name, String parent",
 			"Call     : Expr callee, Token paren, List<Expr> arguments",
 			"Get      : Expr object, Token name",
 			"Set      : Expr object, Token name, Expr value",
@@ -41,7 +41,7 @@ public class GenerateAst{
 			"Var        : Token name, Expr initializer",
 			"Return     : Token keyword, Expr value",
 			"Import     : String moduleName, Token keyword",
-			"Function   : Token name, List<Token> params, List<Stmt> body"
+			"Function   : Token name, List<Token> params, List<Stmt> body, String parent"
 		));
 
 		

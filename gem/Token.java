@@ -16,7 +16,7 @@ public class Token{
 		this.line = line;
         this.sourceFile = sourceFile;
     }
-	 public String tostring(){
+	public String toString(){
 		 return type + " " + lexeme + " " + literal;
 	 }
 }
