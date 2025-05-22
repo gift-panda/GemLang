@@ -5,6 +5,8 @@ import java.util.List;
 abstract class Stmt {
 	interface Visitor<R> {
 		R visitBlockStmt(Block stmt);
+		R visitThrowStmt(Throw stmt);
+		R visitTryStmt(Try stmt);
 		R visitClassStmt(Class stmt);
 		R visitExpressionStmt(Expression stmt);
 		R visitIfStmt(If stmt);
@@ -25,6 +27,40 @@ abstract class Stmt {
 	}
 
     final List<Stmt> statements;
+  }
+  static class Throw extends Stmt {
+    Throw(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitThrowStmt(this);
+	}
+
+    final Token keyword;
+    final Expr value;
+  }
+  static class Try extends Stmt {
+    Try(Stmt tryBlock, Token catchToken, Expr.Variable errorVar, Stmt catchBlock, Stmt finallyBlock) {
+      this.tryBlock = tryBlock;
+      this.catchToken = catchToken;
+      this.errorVar = errorVar;
+      this.catchBlock = catchBlock;
+      this.finallyBlock = finallyBlock;
+    }
+
+	@Override
+	<R> R accept(Visitor<R> visitor){
+		return visitor.visitTryStmt(this);
+	}
+
+    final Stmt tryBlock;
+    final Token catchToken;
+    final Expr.Variable errorVar;
+    final Stmt catchBlock;
+    final Stmt finallyBlock;
   }
   static class Class extends Stmt {
     Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods, List<Stmt.Var> staticFields) {

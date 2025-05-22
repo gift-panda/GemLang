@@ -21,7 +21,7 @@ public class DeferredSuperCallable implements GemCallable {
 
         GemFunction method = superclass.findMethod(mangled);
         if (method == null) {
-            throw new RuntimeError(
+            Interpreter.runtimeError(
                     keyword,
                     "Undefined method '" + methodName + "' with " + arguments.size() + " arguments in superclass."
             );

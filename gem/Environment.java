@@ -20,12 +20,17 @@ public class Environment{
 	}
 
 	public Object get(Token name){
+		//if(enclosing!=null)
+			//System.out.println(enclosing.values + " " + name);
+
 		if(values.containsKey(name.lexeme)){
 			return values.get(name.lexeme);
 		}
 
 		if(enclosing != null) return enclosing.get(name);
-		throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+		Interpreter.runtimeError(name, "Undefined variable '" + name.lexeme + "'.");
+
+		return null;
 	}
 
 	public Object get(String name){
@@ -49,7 +54,7 @@ public class Environment{
 			return;
 		}
 
-		throw new RuntimeError(name, "Undefined '" + name.lexeme + "'.");
+		Interpreter.runtimeError(name, "Undefined '" + name.lexeme + "'.");
 	}
 
 	public boolean exists(String name) {

@@ -18,7 +18,7 @@ public class GemInstance {
         if(string != null) {
             return (String) ((GemFunction)string).call(new Interpreter(), List.of());
         }
-        return klass.name() + " instance";
+        return "inst '"+klass+"'";
     }
 
     public Object get(Token name) {
@@ -29,11 +29,11 @@ public class GemInstance {
             return new DeferredCallable(this, name.lexeme, name, klass.name());
         }
 
-
         GemFunction method = klass.findMethod(Interpreter.mangleName(name.lexeme, 0));
         if (method != null) return method.bind(this);
 
-        throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
+        Interpreter.runtimeError(name, "Undefined property '" + name.lexeme + "'.");
+        return null;
     }
 
     public Object get(String name) {
@@ -44,5 +44,14 @@ public class GemInstance {
     public void set(Token name, Object value) {
         Interpreter.scopes.define(name.lexeme, klass.name());
         fields.put(name.lexeme, value);
+    }
+
+    public void set(String name, Object value) {
+        Interpreter.scopes.define(name, klass.name());
+        fields.put(name, value);
+    }
+
+    public boolean isError(){
+        return klass.isError();
     }
 }

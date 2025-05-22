@@ -14,29 +14,48 @@ public class Print implements GemCallable{
             System.out.print("nil");
             return null;
         }
+
+        cleanList(arguments);
+
         if(arguments.getFirst() instanceof GemInstance instance){
             GemFunction function = instance.klass.findMethod(Interpreter.mangleName("toString",0));
 
             if(function != null) {
                 function = function.bind(instance);
-                Object result = function.call(interpreter, new ArrayList<>());
+                Object result = Interpreter.unwrapAll(function.call(interpreter, new ArrayList<>()));
 
                 if(result.toString().endsWith(".0")) {
-                    System.out.print(result.toString().substring(0, result.toString().length()-2));
+                    System.out.println(result.toString().substring(0, result.toString().length()-2));
                     return null;
                 }
-                System.out.print(result);
+                System.out.println(result);
                 return null;
             }
         }
 
-        if(arguments.getFirst().toString().endsWith(".0")) {
-            System.out.print(arguments.getFirst().toString().substring(0, arguments.getFirst().toString().length()-2));
+        /*if(arguments.getFirst().toString().endsWith(".0")) {
+            System.out.println(arguments.getFirst().toString().substring(0, arguments.getFirst().toString().length()-2));
             return null;
         }
 
-        System.out.print(arguments.getFirst());
+         */
+
+        System.out.println(arguments.getFirst());
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void cleanList(List<Object> list) {
+        for (int i = 0; i < list.size(); i++) {
+            Object elem = list.get(i);
+            if (elem instanceof List<?>) {
+                cleanList((List<Object>) elem); // Recursive step
+            } else if (elem instanceof Double element) {
+                if (element % 1 == 0) {
+                    list.set(i, (element.toString().replace(".0", "")));
+                }
+            }
+        }
     }
 
     @Override
@@ -50,6 +69,6 @@ public class Print implements GemCallable{
     }
 
     public String toString(){
-        return "<native fn>";
+        return "<native 'print'>";
     }
 }

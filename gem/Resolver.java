@@ -56,7 +56,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private List<String> internalImports() {
         try {
             List<String> internal = listFileNames("/home/meow/com/interpreter/internals");
-            System.out.println(internal);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -128,6 +127,31 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         endScope();
         return null;
     }
+
+    @Override
+    public Void visitThrowStmt(Stmt.Throw stmt) {
+        resolve(stmt.value);
+        return null;
+    }
+
+    @Override
+    public Void visitTryStmt(Stmt.Try stmt) {
+        resolve(stmt.tryBlock);
+        if(stmt.catchBlock != null) {
+            beginScope();
+
+            //declare(stmt.errorVar.name);
+            //define(stmt.errorVar.name);
+
+            resolve(stmt.catchBlock);
+            endScope();
+        }
+        if(stmt.finallyBlock != null)
+            resolve(stmt.finallyBlock);
+
+        return null;
+    }
+
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
@@ -215,7 +239,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if(stmt.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
-            Gem.error(stmt.name, "Private variables can only exist within classes.");
+            //Gem.error(stmt.name, "Private variables can only exist within classes.");
         }
 
         define(stmt.name);
@@ -230,7 +254,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
 
         if(expr.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
-            Gem.error(expr.name, "Private variables can only exist within classes.");
+            //Gem.error(expr.name, "Private variables can only exist within classes.");
         }
 
         resolveLocal(expr, expr.name);
@@ -243,7 +267,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         resolveLocal(expr, expr.name);
 
         if(expr.name.lexeme.charAt(0) == '#' && currentClass == ClassType.NONE) {
-            Gem.error(expr.name, "Private variables can only exist within classes.");
+            //Gem.error(expr.name, "Private variables can only exist within classes.");
         }
 
         return null;

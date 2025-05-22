@@ -59,7 +59,6 @@ public class GemNative{
         // 2. Load compiled class
         URLClassLoader classLoader = new URLClassLoader(new URL[]{tempOutDir.toURI().toURL()});
         String fqcn = getFullyQualifiedClassName(javaFile);
-        System.out.println(fqcn);
         Class<?> clazz = classLoader.loadClass(fqcn);
 
         // 3. Check interface and instantiate

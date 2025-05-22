@@ -1,15 +1,19 @@
+import Gem.Error;
+
 class Math{
     var PI = 3.1415926535893;
     var E = 2.7182818284590;
 
     static sqrt(num){
+        if(num < 0){
+            throw Error("sqrt(x): invalid input " + num + " , must be non-negative");
+        }
         var result = Math.pow(num, 0.5);
         return result;
     }
     static ln(num){
         if(num <= 0){
-            println("ln(x): x must be > 0");
-            return;
+            throw Error("ln(x): invalid input " + num + " , x must be greater than zero");
         }
 
         var k = 0;

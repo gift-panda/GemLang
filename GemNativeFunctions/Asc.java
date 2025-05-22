@@ -20,7 +20,7 @@ public class Asc implements GemCallable{
     }
 
     @Override
-    public String toString(){return "<native fn>";}
+    public String toString(){return "<native 'asc'>";}
 
     @Override
     public String name() {

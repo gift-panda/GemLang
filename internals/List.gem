@@ -1,15 +1,19 @@
 class List{
     #init(list, len){
         this.value = list;
-        this.length = len;
+        this.len = len;
     }
 
     init(list){
+        if(!instanceOf(list, List)){
+            throw IllegalArgumentError("A List must be passed.");
+        }
+
         this.value = list.value;
         this.length = list.length;
     }
 
     length(){
-        return this.length;
+        return this.len;
     }
 }

@@ -1,6 +1,6 @@
 package com.interpreter.gem;
 
-import java.util.HashMap;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -10,13 +10,17 @@ public class GemClass implements GemCallable{
     final GemClass superclass;
     public final Map<String, GemFunction> staticMethods;
     public final Map<String, Object> staticFields;
+    public final Path currentSourceFile;
 
-    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods, Map<String, GemFunction> staticMethods, Map<String, Object> staticFields) {
+    GemClass(String name, GemClass superclass, Map<String, GemFunction> methods, Map<String, GemFunction> staticMethods, Map<String, Object> staticFields, Path currentFile) {
         this.name = name;
         this.methods = methods;
         this.superclass = superclass;
         this.staticMethods = staticMethods;
         this.staticFields = staticFields;
+        this.currentSourceFile = currentFile;
+
+        //System.out.println(name + " : " + methods.keySet());
 
         for(String fieldName : staticFields.keySet()){
             Interpreter.scopes.define(fieldName, this.name());
@@ -30,15 +34,24 @@ public class GemClass implements GemCallable{
 
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
+
+        if(this.name().charAt(0) == '#' && !interpreter.currentSourceFile.equals(currentSourceFile)){
+            return "Cannot access private class from current scope.";
+        }
+
         GemInstance instance = new GemInstance(this);
 
         String mangled = Interpreter.mangleName("init", arguments.size());
         GemFunction initializer = findMethod(mangled);
 
-        if (initializer != null) {
+        if (initializer != null){
             initializer.bind(instance).call(interpreter, arguments);
+            return instance;
         }
 
+        if(this.hasOverloadedMethod("init") || this.hasOverloadedMethod("#init")) {
+            return "Can't find constructor for class with " + arguments.size() + " arguments.";
+        }
 
         return instance;
     }
@@ -122,10 +135,17 @@ public class GemClass implements GemCallable{
     public void setStaticField(String name, Object value){
         if(staticFields.containsKey(name)) {
             staticFields.put(name, value);
-            System.out.println(staticFields);
         }
         if(superclass != null) {
             superclass.setStaticField(name, value);
         }
+    }
+
+    public boolean isError(){
+        if(this.name().equals("RuntimeError"))
+            return true;
+        if(superclass != null)
+            return superclass.isError();
+        return false;
     }
 }

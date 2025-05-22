@@ -1,0 +1,11 @@
+class RuntimeError{
+    init(msg){
+        this.msg = msg;
+    }
+
+    toString(){
+        return "Error: " + this.msg;
+    }
+}
+
+class IllegalArgumentError : RuntimeError{}

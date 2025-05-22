@@ -24,7 +24,7 @@ class Scanner {
     		keywords.put("else",   ELSE);
     		keywords.put("false",  FALSE);
     		keywords.put("for",    FOR);
-    		keywords.put("func",    FUN);
+    		keywords.put("func",   FUN);
     		keywords.put("if",     IF);
     		keywords.put("nil",    NIL);
     		keywords.put("or",     OR);
@@ -36,6 +36,10 @@ class Scanner {
     		keywords.put("while",  WHILE);
 			keywords.put("import", IMPORT);
 			keywords.put("static", STATIC);
+			keywords.put("throw",  THROW);
+			keywords.put("try",    TRY);
+			keywords.put("catch",  CATCH);
+			keywords.put("finally",FINALLY);
   	}
 
   	Scanner(String source, Path currentSourceFile) {

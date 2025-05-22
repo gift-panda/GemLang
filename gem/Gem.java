@@ -16,7 +16,7 @@ public class Gem {
 	private static final Interpreter interpreter = new Interpreter();
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
-	private final static List<String> autoImports = List.of("Gem.String", "Gem.Number", "Gem.Boolean", "Gem.List");
+	private final static List<String> autoImports = List.of("Gem.String", "Gem.Number", "Gem.Boolean", "Gem.List", "Gem.RuntimeError");
 	private static Path currentSourceFile;
 
     public static void main(String[] args) throws IOException {
@@ -71,11 +71,12 @@ public class Gem {
 		List<Stmt> importStmts = importParser.parse();
 
 		interpreter.interpret(importStmts);
-		interpreter.setWrappers(
+		Interpreter.setWrappers(
 				(GemClass) interpreter.globals.get("String"),
 				(GemClass) interpreter.globals.get("Number"),
 				(GemClass) interpreter.globals.get("Boolean"),
-				(GemClass) interpreter.globals.get("List")
+				(GemClass) interpreter.globals.get("List"),
+				(GemClass) interpreter.globals.get("RuntimeError")
 		);
 
 
@@ -89,6 +90,7 @@ public class Gem {
 			return;
 		}
 
+
 		Resolver resolver = new Resolver(interpreter, currentSourceFile);
 		resolver.resolve(statements);
 
@@ -100,12 +102,12 @@ public class Gem {
 		interpreter.interpret(statements);
 	}
 
-	static void error(int line, String message, Path file) {
+	public static void error(int line, String message, Path file) {
 		report(line, "", message, file);
 	}
 
 	private static void report(int line, String where, String message, Path file) {
-		System.err.println("[Line " + line + "] Error" + where + ": " + message + "\nIn file " + file.getFileName());
+		System.err.println("[Line " + line + "] Syntax Error" + where + ": " + message + "\nIn file " + file.getFileName());
 		System.exit(0);
 		hadError = true;
 	}
@@ -117,51 +119,4 @@ public class Gem {
 			report(token.line, " at '" + token.lexeme + "'", message, token.sourceFile);
 		}
 	}
-
-	static void runtimeError(RuntimeError error, Token name){
-		System.err.println("[Line " + error.token.line + "] " + error.getMessage() + "\nIn file " + name.sourceFile.getFileName());
-		System.exit(0);
-		hadRuntimeError = true;
-	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-

@@ -22,5 +22,5 @@ public class Clock implements GemCallable{
     }
 
     @Override
-    public String toString(){return "<native fn>";}
+    public String toString(){return "<native 'clock'>";}
 }

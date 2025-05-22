@@ -20,7 +20,7 @@ public class DeferredCallable implements GemCallable {
         String mangled = Interpreter.mangleName(name, arguments.size());
         GemFunction method = instance.klass.findMethod(mangled);
         if (method == null) {
-            throw new RuntimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
+            Interpreter.runtimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
         }
         return method.bind(instance).call(interpreter, arguments);
     }

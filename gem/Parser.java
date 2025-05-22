@@ -1,6 +1,7 @@
 package com.interpreter.gem;
 
 import java.nio.file.Path;
+import java.security.spec.RSAOtherPrimeInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -304,9 +305,51 @@ class Parser{
 		if(match(LEFT_BRACE)) return new Stmt.Block(block());
 		if(match(RETURN)) return returnStatement();
 		if(match(IMPORT)) return importStatement();
+		if(match(THROW)) return throwStatement();
+		if(match(TRY)) {
+			var v = tryStatement();
+			return v;
+		}
 		
 
 		return expressionStatement();
+	}
+
+	private Stmt  tryStatement(){
+		Stmt tryBlock = statement();
+
+		Token catchToken = null;
+		Expr.Variable errorVar = null;
+		Stmt catchBlock = null;
+
+		if (match(CATCH)) {
+			consume(TokenType.LEFT_PAREN, "Expect '(' after 'catch'.");
+			Token errorName = consume(TokenType.IDENTIFIER, "Expect Error Class.");
+			errorVar = new Expr.Variable(errorName, currentClass);
+			consume(TokenType.RIGHT_PAREN, "Expect ')' after error variable.");
+			catchToken = errorName;
+			catchBlock = statement();
+		}
+
+		Stmt finallyBlock = null;
+		if (match(FINALLY)) {
+			finallyBlock = statement();
+		}
+		if (catchBlock == null && finallyBlock == null) {
+			Gem.error(previous(), "Expect 'catch' or 'finally' after 'try'.");
+		}
+
+		Stmt.Try res = new Stmt.Try(tryBlock, catchToken, errorVar, catchBlock, finallyBlock);
+		return res;
+	}
+
+	private Stmt throwStatement() {
+		Token name = previous();
+		Expr expr = expression();
+
+		consume(SEMICOLON, "Expect ';' after throw.");
+
+		return new Stmt.Throw(name, expr);
 	}
 
 	private Stmt importStatement() {
@@ -318,7 +361,7 @@ class Parser{
 			moduleName.append(".").append(next.lexeme);
 		}
 
-		consume(SEMICOLON, "Expect ';' after import.");
+		consume(SEMICOLON, "Expected ';' after import.");
 		return new Stmt.Import(moduleName.toString(), name);
 	}
 

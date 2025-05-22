@@ -1,25 +1,4 @@
-import Gem.Math;
+import Gem.Util;
 
-class Counter{
-    var #hola = 1;
-    init(){
-        this.count = 0;
-        this.#hi = "hi";
-    }
-    execute(){
-        this.count = this.count + 1;
-        println(this.#hi);
-        Counter.#exec();
-        println("executed " + this.count + " times");
-    }
-
-    static #exec(){
-        println("hi");
-    }
-
-    static do(){
-        println(Counter.#hola);
-    }
-}
-
-Counter.#hola();
+var h = String("1");
+println(h.length());

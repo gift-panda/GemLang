@@ -1,0 +1,10 @@
+func instanceOf(instance, clazz){
+    if(type(clazz)[1:5] != "class"){
+        throw RuntimeError("Arg 2 must be a class.");
+    }
+    if(type(instance)[1:4] != "inst"){
+        throw RuntimeError("Arg 1 must be a instance.");
+    }
+
+    return type(clazz)[8: type(clazz).length() - 3] == type(instance)[7:type(instance).length()-3];
+}
