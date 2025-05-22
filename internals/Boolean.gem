@@ -1,3 +1,5 @@
+import Gem.Util;
+
 class Boolean{
     #init(value){
         this.value = value;
