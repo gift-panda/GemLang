@@ -1,4 +1,22 @@
-import Gem.Util;
+import gem.Util;
+import gem.RuntimeError;
 
-var h = String("1");
-println(h.length());
+func level1() {
+    println("In level 1");
+    level2();
+}
+
+func level2() {
+    println("In level 2");
+    level3();
+}
+
+func level3() {
+    println("In level 3");
+    level4();
+}
+
+func level4() {
+    println("In level 4");
+    throw RuntimeError("some error");
+}

@@ -16,7 +16,7 @@ public class Gem {
 	private static final Interpreter interpreter = new Interpreter();
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
-	private final static List<String> autoImports = List.of("Gem.String", "Gem.Number", "Gem.Boolean", "Gem.List", "Gem.RuntimeError");
+	private final static List<String> autoImports = List.of("gem.String", "gem.Number", "gem.Boolean", "gem.List");//, "gem.RuntimeError");
 	private static Path currentSourceFile;
 
     public static void main(String[] args) throws IOException {
@@ -89,7 +89,6 @@ public class Gem {
 		if (hadError) {
 			return;
 		}
-
 
 		Resolver resolver = new Resolver(interpreter, currentSourceFile);
 		resolver.resolve(statements);

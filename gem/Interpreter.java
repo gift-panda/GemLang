@@ -21,6 +21,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Path currentSourceFile = null;
 	private final List<String> alreadyImported = new ArrayList<>();
 	private String currentClass = "~";
+	private static Stack<String> stackTrace = new Stack<>();
 
 	Interpreter(){
 		try {
@@ -148,7 +149,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	public static void runtimeError(Token token, String msg) {
 		GemInstance errorInstance = new GemInstance(errorClass);
-		errorInstance.set("msg", msg);
+        StringBuilder msgBuilder = new StringBuilder(msg);
+        for(int i = stackTrace.size() - 1; i >= 0; i--){
+			msgBuilder.append("\n").append(stackTrace.get(i));
+		}
+        msg = msgBuilder.toString();
+        errorInstance.set("msg", msg);
 		throw new GemThrow(token, errorInstance);
 	}
 
@@ -287,7 +293,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			}
 		}catch (GemThrow error) {
 			System.err.println("[Line " + error.line + "] " + error.errorObject.klass.name() + ": " + error.msg);
-			System.err.println("In file " + error.file);
 			System.exit(0);
 		}
 	}
@@ -355,6 +360,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object value = evaluate(stmt.value);
 		if(value instanceof GemInstance instance){
 			if(instance.isError()){
+				StringBuilder str = new StringBuilder();
+				for(int i = stackTrace.size() - 1; i >= 0; i--){
+					str.append("\n").append(stackTrace.get(i));
+				}
+				instance.set("msg", unwrap(instance.get("msg")) + " (" + stmt.keyword.sourceFile.getFileName() + ":" + stmt.keyword.line + ")" + str.toString());
 				throw new GemThrow(stmt.keyword, instance);
 			}
 		}
@@ -364,10 +374,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	@Override
 	public Void visitTryStmt(Stmt.Try stmt) {
+		Stack<String> backup = (Stack<String>) stackTrace.clone();
 		try {
 			execute(stmt.tryBlock);
 		} catch (GemThrow error) {
 			if (stmt.catchBlock instanceof Stmt.Block block) {
+				stackTrace = backup;
 				Environment catchEnv = new Environment(environment);
 				catchEnv.define(stmt.errorVar.name.lexeme, error.errorObject);
 				executeBlock(block.statements, catchEnv, currentClass);
@@ -375,6 +387,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				throw error; // rethrow if no catch block
 			}
 		} finally {
+			if(!(stmt.catchBlock instanceof Stmt.Block block)){
+				stackTrace = backup;
+			}
 			if (stmt.finallyBlock != null) {
 				execute(stmt.finallyBlock);
 			}
@@ -457,13 +472,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			}
 
 			if(callee.toString().equals("<native fn>")){
+				System.err.println(currentSourceFile);
 				for(int i = 0; i < arguments.size(); i++){
 					arguments.set(i, unwrapAll(arguments.get(i)));
 				}
 			}
 
 
+			stackTrace.add("at "+ varExpr.name.lexeme + " (" + varExpr.name.sourceFile.getFileName() + ":" + varExpr.name.line + ")");
 			Object result = function.call(this, arguments);
+			stackTrace.pop();
 
 			if(callee instanceof GemClass && result instanceof String strResult){
 				runtimeError(expr.paren, strResult);
@@ -483,6 +501,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 		Object result = function.call(this, arguments);
 
+		stackTrace.add("at " + expr.callee);
 		return wrap(result);
 	}
 
@@ -642,10 +661,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		if (!environment.exists(stmt.name.lexeme)) {
 			environment.define(stmt.name.lexeme,
 					new FunctionDispatcher(stmt.name.lexeme, environment, stmt.name));
-
 		}
-
-
 		return null;
 	}
 
@@ -693,10 +709,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			byte[] bytes = Files.readAllBytes(Paths.get(path));
 			return new String(bytes, StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			runtimeError(keyword, "Invalid import: " + module);
+			throw new RuntimeException("Invalid import: " + module);
 		}
-
-		return null;
 	}
 
 
@@ -709,9 +723,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			throw new RuntimeException("Could not locate current package.");
 		}
 
-		if (moduleName.startsWith("Gem.")) {
+		if (moduleName.startsWith("gem.")) {
 			baseDir = Paths.get("internals");//Paths.get("/home/meow/com/interpreter/internals"); // define GEM_PATH somewhere
-			moduleName = moduleName.replace("Gem.", "");
+			moduleName = moduleName.replace("gem.", "");
 		} else if (sourceFile != null) {
 			baseDir = sourceFile.toAbsolutePath().getParent();
 		} else {

@@ -1,4 +1,4 @@
-import Gem.Error;
+import gem.RuntimeError;
 
 class Math{
     var PI = 3.1415926535893;

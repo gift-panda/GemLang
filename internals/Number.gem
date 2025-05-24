@@ -1,5 +1,5 @@
-import Gem.Util;
-import Gem.RuntimeError;
+import gem.Util;
+import gem.RuntimeError;
 
 class Number{
     #init(value){
