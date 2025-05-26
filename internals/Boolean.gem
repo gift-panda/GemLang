@@ -1,0 +1,19 @@
+import gem.Util;
+
+class Boolean{
+    #init(value){
+        this.#value = value;
+    }
+    init(value){
+        if(!instanceOf(value, Boolean)){
+            throw IllegalArgumentError("A boolean must be passed.");
+        }
+        this.#value = value.#value;
+    }
+    isFalse(){
+        return !this.#value;
+    }
+    toString(){
+        return this.#value;
+    }
+}

@@ -1,0 +1,25 @@
+import gem.Util;
+import gem.RuntimeError;
+
+class String{
+    #init(value, len){
+        this.#value = value;
+        this.#len = len;
+    }
+
+    init(str){
+        if(!instanceOf(str, String)){
+            throw IllegalArgumentError("A string must be passed.");
+        }
+        this.#value = str.#value;
+        this.#len = str.#len;
+    }
+
+    length(){
+        return this.#len;
+    }
+
+    toString(){
+        return this.#value;
+    }
+}

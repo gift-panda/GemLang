@@ -1,0 +1,90 @@
+import gem.RuntimeError;
+
+class Math{
+    var PI = 3.1415926535893;
+    var E = 2.7182818284590;
+
+    static sqrt(num){
+        if(num < 0){
+            throw Error("sqrt(x): invalid input " + num + " , must be non-negative");
+        }
+        var result = Math.pow(num, 0.5);
+        return result;
+    }
+    static ln(num){
+        if(num <= 0){
+            throw Error("ln(x): invalid input " + num + " , x must be greater than zero");
+        }
+
+        var k = 0;
+
+        while(num > 2){
+            num = num / Math.E;
+            k = k + 1;
+        }
+        while(num < 0.5){
+            num = num * Math.E;
+            k = k - 1;
+        }
+
+        var x = (num - 1)/(num + 1);
+        var x2 = x*x;
+        var term = x;
+        var sum = 0;
+
+        for(var n = 1; n <= 20; n = n + 2){
+            sum = sum + term/n;
+            term = term * x2;
+        }
+
+        return 2*sum + k;
+
+    }
+
+    static exp(num){
+        var sum = 1;
+        var term = 1;
+        for(var i = 1; i < 100; i = i + 1){
+            term = term * num / i;
+            sum = sum + term;
+        }
+        return sum;
+    }
+
+    static pow(a, b){
+        var sign = 1;
+        if(a <= 0){
+            a = -a;
+            if(b % 2 != 0)
+                sign = -1;
+        }
+        return Math.round(Math.exp(b * Math.ln(a)), 9) * sign;
+    }
+
+    static round(value, decimals){
+        if(value < 0) return value;
+        var factor = 1;
+        for(var i = 1; i <= decimals; i=i+1){
+            factor = factor * 10;
+        }
+        return Math.round(value * factor)/factor;
+    }
+
+    static round(x){
+        if (x >= 0) {
+            var k = 0;
+            if(x % 1 >= 0.5)
+                k = 1;
+            else
+                k = 0;
+            return x - (x % 1) + k;
+        } else {
+            var k = 0;
+            if(x % 1 >= 0.5)
+                k = 1;
+            else
+                k = 0;
+            return x - (x % 1) - k;
+        }
+    }
+}

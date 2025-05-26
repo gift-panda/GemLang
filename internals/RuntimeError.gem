@@ -1,0 +1,21 @@
+class RuntimeError{
+    init(msg){
+        this.message = msg;
+        this.stackTrace = "";
+    }
+
+    getStackTrace(){
+        return this.stackTrace;
+    }
+
+    getMessage(){
+        return this.message;
+    }
+
+    toString(){
+        var transform = "\n";
+        return "Error: " + this.message + "\n" + this.stackTrace;
+    }
+}
+
+class IllegalArgumentError : RuntimeError{}

@@ -1,0 +1,23 @@
+import gem.Util;
+import gem.RuntimeError;
+
+class Number{
+    #init(value){
+        this.#value = value;
+    }
+
+    init(value){
+        if(!instanceOf(value, Number)){
+            throw IllegalArgumentError("A number must be passed.");
+        }
+        this.#value = value.#value;
+    }
+
+    isNum(){
+        return false;
+    }
+
+    toString(){
+        return this.#value;
+    }
+}
