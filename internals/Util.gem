@@ -16,3 +16,13 @@ func instanceOf(instance, clazz){
 
     return type(clazz)[8: type(clazz).length() - 3] == type(instance)[7:type(instance).length()-3];
 }
+
+func getName(obj){
+    if(type(obj)[1:5] == "class"){
+        return type(obj)[8:type(obj).length()-3];
+    }
+
+    if(type(obj)[1:4] == "inst"){
+        return type(obj)[7:type(obj).length()-3];
+    }
+}

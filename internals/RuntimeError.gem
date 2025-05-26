@@ -1,3 +1,5 @@
+import gem.Util;
+
 class RuntimeError{
     init(msg){
         this.message = msg;
@@ -5,7 +7,7 @@ class RuntimeError{
     }
 
     getStackTrace(){
-        return this.stackTrace;
+        return getName(this) + ": " + this.message + "\n" + this.stackTrace;
     }
 
     getMessage(){
@@ -13,8 +15,7 @@ class RuntimeError{
     }
 
     toString(){
-        var transform = "\n";
-        return "Error: " + this.message + "\n" + this.stackTrace;
+        return getName(this) + ": " + this.message;
     }
 }
 

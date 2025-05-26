@@ -725,9 +725,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 	private String readFile(String pathOrResource, Token keyword, String module) {
 		try {
-			if (pathOrResource.startsWith("internal:")) {
+			if (pathOrResource.startsWith("@internal/")) {
 				// Resource inside jar
-				String resourcePath = pathOrResource.substring("internal:".length());
+				String resourcePath = pathOrResource.substring("@internal/".length());
 
 				try (InputStream in = Interpreter.class.getClassLoader().getResourceAsStream(resourcePath)) {
 					if (in == null) {
@@ -752,7 +752,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			String internalPath = "com/interpreter/internals/" +
 					moduleName.substring("gem.".length()).replace('.', '/') + ".gem";
 
-			return "internal:" + internalPath;
+			return "@internal/" + internalPath;
 		} else {
 			Path baseDir;
 			if (sourceFile != null) {
