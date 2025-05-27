@@ -20,7 +20,7 @@ public class DeferredStaticCallable implements GemCallable {
         String mangled = Interpreter.mangleName(name, arguments.size());
         GemFunction method = klass.getStaticMethod(mangled);
         if (method == null) {
-            Interpreter.runtimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
+            Interpreter.runtimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.", "NameError");
         }
         return method.staticBind().call(interpreter, arguments);
     }
@@ -38,6 +38,6 @@ public class DeferredStaticCallable implements GemCallable {
 
     @Override
     public String toString() {
-        return "<md " + name + "> (deferred)";
+        return "<DeferredMethod '" + name + "'>";
     }
 }

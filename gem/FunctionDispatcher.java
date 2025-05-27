@@ -20,7 +20,7 @@ public class FunctionDispatcher implements GemCallable {
         Object target = closure.get(mangled);
 
         if (!(target instanceof GemCallable callable)) {
-            Interpreter.runtimeError(token, "No matching overload for '" + baseName + "' with " + arguments.size() + " arguments.");
+            Interpreter.runtimeError(token, "No matching overload for '" + baseName + "' with " + arguments.size() + " arguments.", "NameError");
             throw new RuntimeException();
         }
 
@@ -39,7 +39,7 @@ public class FunctionDispatcher implements GemCallable {
 
     @Override
     public String toString() {
-        return "<fn " + baseName +">";
+        return "<function '" + baseName +"'>";
     }
 }
 

@@ -36,7 +36,7 @@ public class GemClass implements GemCallable{
     public Object call(Interpreter interpreter, List<Object> arguments) {
 
         if(this.name().charAt(0) == '#' && !interpreter.currentSourceFile.equals(currentSourceFile)){
-            return "Cannot access private class from current scope.";
+            return "Can't access private class from current scope.";
         }
 
         GemInstance instance = new GemInstance(this);

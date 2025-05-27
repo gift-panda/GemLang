@@ -32,7 +32,7 @@ public class GemInstance {
         GemFunction method = klass.findMethod(Interpreter.mangleName(name.lexeme, 0));
         if (method != null) return method.bind(this);
 
-        Interpreter.runtimeError(name, "Undefined property '" + name.lexeme + "'.");
+        Interpreter.runtimeError(name, "Undefined property '" + name.lexeme + "'.", "NameError");
         return null;
     }
 

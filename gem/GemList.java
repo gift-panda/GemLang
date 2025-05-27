@@ -8,7 +8,7 @@ public class GemList{
 
     public Object get(Token token, int indexStart, int indexEnd) {
         if(indexStart < 0 || indexStart > items.size() - 1 || indexStart > indexEnd || indexEnd > items.size() - 1) {
-            Interpreter.runtimeError(token, "Index " + indexStart + " to " + indexEnd + " out of bounds for length " + items.size());
+            Interpreter.runtimeError(token, "Index " + indexStart + " to " + indexEnd + " out of bounds for length " + items.size(), "IndexOutOfBoundsError");
         }
 
         GemList result = new GemList();

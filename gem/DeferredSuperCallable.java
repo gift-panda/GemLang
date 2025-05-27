@@ -23,7 +23,8 @@ public class DeferredSuperCallable implements GemCallable {
         if (method == null) {
             Interpreter.runtimeError(
                     keyword,
-                    "Undefined method '" + methodName + "' with " + arguments.size() + " arguments in superclass."
+                    "Undefined method '" + methodName + "' with " + arguments.size() + " arguments in superclass.",
+                    "NameError"
             );
         }
 
@@ -44,7 +45,7 @@ public class DeferredSuperCallable implements GemCallable {
 
     @Override
     public String toString() {
-        return "<md " + methodName + "> (deferred from super)";
+        return "<DeferredMethod '" + methodName + "'>";
     }
 }
 

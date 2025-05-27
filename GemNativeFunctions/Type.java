@@ -7,7 +7,7 @@ import java.util.List;
 public class Type implements GemCallable {
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        Object value = arguments.get(0);
+        Object value = arguments.getFirst();
         if(value instanceof String){
             return "<class 'String'>";
         }
@@ -26,8 +26,11 @@ public class Type implements GemCallable {
         if(value instanceof GemClass clazz){
             return "<class '" + clazz.name() + "'>";
         }
-        if(value instanceof GemFunction function){
+        if(value instanceof GemCallable function){
             return function.toString();
+        }
+        if(value == null){
+            return "<nil>";
         }
 
         return null;

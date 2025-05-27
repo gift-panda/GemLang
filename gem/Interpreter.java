@@ -2,7 +2,6 @@ package com.interpreter.gem;
 
 import java.io.*;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -156,13 +155,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					return wrapString(leftText + rightText);
 				}
 				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				runtimeError(expr.operator, "Incompatible types for operator " + expr.operator.lexeme);
+				runtimeError(expr.operator, "Incompatible types for operator " + expr.operator.lexeme, "TypeError");
 		}
 
 		return null;
 	}
 
-	public static void runtimeError(Token token, String msg) {
+	public static void runtimeError(Token token, String msg, String type) {
 		GemInstance errorInstance = new GemInstance(errorClass);
         StringBuilder msgBuilder = new StringBuilder();
 		msgBuilder.append("\t").append("at (").append(token.sourceFile.getFileName()).append(":").append(token.line).append(")");
@@ -173,7 +172,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
         errorInstance.set("message", msg);
 		errorInstance.set("stackTrace", stack);
 
-		throw new GemThrow(token, errorInstance);
+		throw new GemThrow(token, errorInstance, type);
 	}
 
 	private Object wrapNumber(double value) {
@@ -295,13 +294,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	private void checkNumberOperand(Token operator, Object operand) {
 		operand = unwrap(operand);
 		if (operand instanceof Double) return;
-		runtimeError(operator, "Operand must be a number.");
+		runtimeError(operator, "Operand expected to be a number, received " + typeOf(operand), "TypeError");
 	}
 
 	private void checkNumberOperands(Token operator, Object left, Object right) {
+		left = unwrap(left);
+		right = unwrap(right);
 		if (left instanceof Double && right instanceof Double) return;
 
-		runtimeError(operator, "Operands must be numbers.");
+		runtimeError(operator, "Operands expected to be numbers, received " + typeOf(left) + " and " +  typeOf(right), "TypeError");
 	}
 	void interpret(List<Stmt> statements){
 		try{
@@ -309,7 +310,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				execute(statement);
 			}
 		}catch (GemThrow error) {
-			System.err.println("[Line " + error.line + "] " + error.errorObject.klass.name() + ": " + error.msg);
+			System.err.println("[Line " + error.line + "] " + error.name + ": " + error.msg);
 			System.exit(0);
 		}
 	}
@@ -385,10 +386,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					str.append("\n\t").append(stackTrace.get(i));
 				}
 				instance.set("stackTrace", "\tat (" + stmt.keyword.sourceFile.getFileName() + ":" + stmt.keyword.line + ")" + str.toString());
-				throw new GemThrow(stmt.keyword, instance);
+				throw new GemThrow(stmt.keyword, instance, instance.klass.name());
 			}
 		}
-		runtimeError(stmt.keyword, "Only errors can be thrown.");
+		runtimeError(stmt.keyword, "Expected an error to throw, received " + typeOf(unwrap(value)), "TypeError");
 		return null;
 	}
 
@@ -487,8 +488,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 			if (!(callee instanceof GemCallable function)) {
 				Token token = varExpr.name;
-				String msg = "Can only call functions and classes.";
-				runtimeError(token, msg);
+				String msg = "Expected functions or classes to call, received " + typeOf(unwrap(callee)) + ".";
+				runtimeError(token, msg, "TypeError");
 				throw new RuntimeException();
 			}
 
@@ -503,7 +504,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			stackTrace.pop();
 
 			if(callee instanceof GemClass && result instanceof String strResult){
-				runtimeError(expr.paren, strResult);
+				if(strResult.endsWith("arguments."))
+					runtimeError(expr.paren, strResult, "InstantiationError");
+				else if(strResult.endsWith("scope."))
+					runtimeError(expr.paren, strResult, "IllegalAccessError");
 			}
 
 			return wrap(result);
@@ -512,7 +516,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object callee = wrap(evaluate(expr.callee));
 
 		if (!(callee instanceof GemCallable function)) {
-			runtimeError(expr.paren, "Can only call functions and classes.");
+			runtimeError(expr.paren, "Expected functions or classes to call, received " + typeOf(unwrap(callee)) + ".", "TypeError");
 			throw new RuntimeException();
 
 		}
@@ -535,7 +539,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					if(expr.name.lexeme.charAt(0) == '#' && scopes.get(currentClass).contains(function.parent)) {
 						return function;
 					}
-					runtimeError(expr.name, "Cannot access private method from current scope.");
+					runtimeError(expr.name, "Cannot access private method from current scope.", "IllegalAccessError");
 				}
 				else{
 
@@ -546,7 +550,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					if(expr.name.lexeme.charAt(0) == '#' && scopes.get(currentClass).contains(expr.name.lexeme)){
 						return value;
 					}
-					runtimeError(expr.name, "Cannot access private field from current scope.");
+					runtimeError(expr.name, "Cannot access private field from current scope.", "IllegalAccessError");
 				}
 			}
 			if(object instanceof GemClass clazz) {
@@ -559,7 +563,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 						return value;
 					}
 
-					runtimeError(expr.name, "Cannot access private method from current scope.");
+					runtimeError(expr.name, "Cannot access private method from current scope.", "IllegalAccessError");
 				}
 				else{
 					Object value = clazz.getStaticField(expr.name.lexeme);
@@ -570,13 +574,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					if(expr.name.lexeme.charAt(0) == '#' && clazz.getStaticField(expr.name.lexeme) != null){
 						return value;
 					}
-					runtimeError(expr.name, "Cannot access private field from current scope.");
+					runtimeError(expr.name, "Cannot access private field from current scope.", "IllegalAccessError");
 				}
 			}
 		}
 
 
-		runtimeError(expr.name, "Only instances have properties.");
+		runtimeError(expr.name, "Only instances have properties.", "TypeError");
 		throw new RuntimeException();
 	}
 
@@ -592,7 +596,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
 		if(!(object instanceof GemInstance)){
-			runtimeError(expr.name, "Cannot set property of non-instance '" + expr.name + "'.");
+			runtimeError(expr.name, "Expected instance, received " + object + ", '" + expr.name + "'.", "TypeError");
 		}
 
 		Object value = evaluate(expr.value);
@@ -624,21 +628,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			int start = ((Double)indexStart).intValue();
 			int end = ((Double)indexEnd).intValue();
 			if(start < 0 || start > ((String) obj).length() - 1 || start > end || end > ((String) obj).length() - 1){
-				runtimeError(expr.bracket, "Index " + start + " to " + end + " out of bounds for length " + (((String) obj).length() - 1) );
+				runtimeError(expr.bracket, "Index " + start + " to " + end + " out of bounds for length " + (((String) obj).length() - 1), "IndexOutOfBoundsError");
 			}
 			return wrapString(((String)obj).substring(start, end + 1));
 		}
 
 		if(indexStart instanceof Double && indexEnd instanceof Double)
-			runtimeError(expr.bracket, "Only lists or strings can be indexed.");
+			runtimeError(expr.bracket, "Expected a list or string, received + " + typeOf(obj), "TypeError");
 
-		runtimeError(expr.bracket, "Index(s) must be a number.");
+		runtimeError(expr.bracket, "Index(s) must be a number.", "TypeError");
 		return null;
 	}
 
 	@Override
 	public Object visitSetIndexExpr(Expr.SetIndex expr) {
-		evaluate(expr.object);
 		Object obj = unwrap(evaluate(expr.object));
 		Object index = unwrap(evaluate(expr.index));
 		Object value = unwrap(evaluate(expr.value));
@@ -647,8 +650,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			return wrap(value);
 		}
 
-		runtimeError(expr.bracket, "Only lists can be assigned by index.");
+		runtimeError(expr.bracket, "Expected a list, received " + typeOf(obj) + " instead.", "TypeError");
 		return null;
+	}
+
+	public String typeOf(Object object) {
+		List<Object> temp = new ArrayList<>();
+		temp.add(unwrap(object));
+		return (String) ((GemCallable)environment.get("type$1")).call(this, temp);
 	}
 
 
@@ -703,12 +712,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	@Override
 	public Void visitImportStmt(Stmt.Import stmt) {
 		String module = stmt.moduleName;
-		String resolvedPath = resolveImportPath(module, currentSourceFile);
+		String resolvedPath = null;
+		try {
+			resolvedPath = resolveImportPath(module, currentSourceFile);
+		}
+		catch(Exception e){
+			runtimeError(stmt.keyword, "Cannot resolve import module: " + module, "ImportError");
+		}
 
 		Path currFile = currentSourceFile;
 		this.currentSourceFile = Paths.get(resolvedPath);
 
-		if (alreadyImported.contains(resolvedPath)) return null;
+		if (alreadyImported.contains(resolvedPath)) {
+			this.currentSourceFile = currFile;
+			return null;
+		}
+
 		alreadyImported.add(resolvedPath);
 
 		String source = readFile(resolvedPath, stmt.keyword, module);
@@ -726,14 +745,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	private String readFile(String pathOrResource, Token keyword, String module) {
 		try {
 			if (pathOrResource.startsWith("@internal/")) {
-				// Resource inside jar
 				String resourcePath = pathOrResource.substring("@internal/".length());
 
 				try (InputStream in = Interpreter.class.getClassLoader().getResourceAsStream(resourcePath)) {
 					if (in == null) {
-						throw new RuntimeException("Internal module not found: " + module);
+						runtimeError(keyword, "Could not resolve import " + module, "ImportError");
 					}
-					return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                    assert in != null;
+                    return new String(in.readAllBytes(), StandardCharsets.UTF_8);
 				}
 			} else {
 				// External file path
@@ -741,31 +760,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				return new String(bytes, StandardCharsets.UTF_8);
 			}
 		} catch (IOException e) {
-			throw new RuntimeException("Invalid import: " + module, e);
+			runtimeError(keyword, "Could not read file " + pathOrResource, "ImportError");
 		}
+		return null;
 	}
 
 	private String resolveImportPath(String moduleName, Path sourceFile) {
 		if (moduleName.startsWith("gem.")) {
-			// Internal resource path inside jar
-			// Example: gem.foo.bar -> com/interpreter/internals/foo/bar.gem
 			String internalPath = "com/interpreter/internals/" +
 					moduleName.substring("gem.".length()).replace('.', '/') + ".gem";
 
 			return "@internal/" + internalPath;
 		} else {
 			Path baseDir;
-			if (sourceFile != null) {
-				baseDir = sourceFile.toAbsolutePath().getParent();
-			} else {
-				baseDir = Paths.get("").toAbsolutePath(); // PWD (REPL)
-			}
+			baseDir = Gem.currentSourceFile.getParent();
 			String relativePath = moduleName.replace('.', File.separatorChar) + ".gem";
 			return baseDir.resolve(relativePath).toString();
 		}
 	}
-
-
 
 	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {
@@ -774,7 +786,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			superclass = evaluate(stmt.superclass);
 			if (!(superclass instanceof GemClass)) {
 				runtimeError(stmt.superclass.name,
-						"Superclass must be a class.");
+						"Superclass must be a class.", "TypeError");
 			}
 		}
 
@@ -801,7 +813,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		for (Stmt.Function method : stmt.staticMethods) {
 			String name = method.name.lexeme;
 			int arity = method.params.size();
-			if(name.equals("init")){runtimeError(method.name, "Class constructor cannot be static");}
+			if(name.equals("init")){runtimeError(method.name, "Class constructor cannot be static", "ModifierConflictError");}
 
 			String mangled = mangleName(name, arity);
 			staticMethods.put(mangled, new GemFunction(method, environment, false, method.parent));

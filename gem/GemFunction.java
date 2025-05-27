@@ -45,7 +45,7 @@ public class GemFunction implements GemCallable{
 
 	@Override
 	public String toString(){
-		return "<fn " + declaration.name.lexeme + ">";
+		return "<function " + declaration.name.lexeme + ">";
 	}
 
 	public GemFunction bind(GemInstance instance) {

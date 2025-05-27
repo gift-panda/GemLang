@@ -17,7 +17,7 @@ public class Gem {
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
 	private final static List<String> autoImports = List.of("gem.String", "gem.Number", "gem.Boolean", "gem.List");//, "gem.RuntimeError");
-	private static Path currentSourceFile;
+	public static Path currentSourceFile;
 
     public static void main(String[] args) throws IOException {
 		//args = new String[]{"/home/meow/com/interpreter/gem/sample.gem"};

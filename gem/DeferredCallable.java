@@ -20,7 +20,7 @@ public class DeferredCallable implements GemCallable {
         String mangled = Interpreter.mangleName(name, arguments.size());
         GemFunction method = instance.klass.findMethod(mangled);
         if (method == null) {
-            Interpreter.runtimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.");
+            Interpreter.runtimeError(keyword, "No method '" + name + "' with " + arguments.size() + " args.", "NameError");
         }
         return method.bind(instance).call(interpreter, arguments);
     }
@@ -38,6 +38,6 @@ public class DeferredCallable implements GemCallable {
 
     @Override
     public String toString() {
-        return "<md " + name + "> (deferred)";
+        return "<DeferredMethod '" + name + "'>";
     }
 }

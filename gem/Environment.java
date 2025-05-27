@@ -25,7 +25,7 @@ public class Environment{
 		}
 
 		if(enclosing != null) return enclosing.get(name);
-		Interpreter.runtimeError(name, "Undefined variable '" + name.lexeme + "'.");
+		Interpreter.runtimeError(name, "Undefined variable '" + name.lexeme + "'.", "NameError");
 
 		return null;
 	}
@@ -51,7 +51,7 @@ public class Environment{
 			return;
 		}
 
-		Interpreter.runtimeError(name, "Undefined '" + name.lexeme + "'.");
+		Interpreter.runtimeError(name, "Undefined '" + name.lexeme + "'.", "NameError");
 	}
 
 	public boolean exists(String name) {
