@@ -14,7 +14,7 @@ class Number{
     }
 
     isNum(){
-        return false;
+        return true;
     }
 
     toString(){

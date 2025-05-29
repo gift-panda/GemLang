@@ -1,27 +1,176 @@
 import gem.Util;
+import gem.RuntimeError;
+//import gem.Math;
 
-class List{
-    #init(list, len){
+class List {
+    #init(list, len) {
         this.#value = list;
         this.len = len;
     }
 
-    init(list){
-        if(!instanceOf(list, List)){
+    init(list) {
+        if (!instanceOf(list, List)) {
             throw IllegalArgumentError("A List must be passed.");
         }
 
         this.#value = list.#value;
-        this.length = list.length;
-    }
-
-    append(value){
-        this.#value[this.len] = value;
-        this.len = this.len + 1;
-        return this;
+        this.len = list.len;
     }
 
     length(){
         return this.len;
     }
+
+    append(value) {
+        this.#value[this.len] = value;
+        this.len = this.len + 1;
+        return this;
+    }
+
+    insert(index, value) {
+        if (index < 0 or index > this.len) {
+            throw IndexOutOfBoundsError("Index out of bounds in insert().");
+        }
+
+        for (var i = this.len; i > index; i = i - 1) {
+            this.#value[i] = this.#value[i - 1];
+        }
+
+        this.#value[index] = value;
+        this.len = this.len + 1;
+    }
+
+    removeAt(index) {
+        if (index < 0 or index >= this.len) {
+            throw IndexOutOfBoundsError("Index out of bounds in removeAt().");
+        }
+
+        var removed = this.#value[index];
+        for (var i = index; i < this.len - 1; i = i + 1) {
+            this.#value[i] = this.#value[i + 1];
+        }
+
+        this.len = this.len - 1;
+        return removed;
+    }
+
+    get(index) {
+        if (index < 0 or index >= this.len) {
+            throw IndexOutOfBoundsError("Index out of bounds in get().");
+        }
+        return this.#value[index];
+    }
+
+    set(index, value) {
+        if (index < 0 or index >= this.len) {
+            throw IndexOutOfBoundsError("Index out of bounds in set().");
+        }
+        this.#value[index] = value;
+    }
+
+    contains(value) {
+        for (var i = 0; i < this.len; i = i + 1) {
+            if (this.#value[i] == value) return true;
+        }
+        return false;
+    }
+
+    indexOf(value) {
+        for (var i = 0; i < this.len; i = i + 1) {
+            if (this.#value[i] == value) return i;
+        }
+        return -1;
+    }
+
+    clear() {
+        this.len = 0;
+    }
+
+    length() {
+        return this.len;
+    }
+
+    isEmpty() {
+        return this.len == 0;
+    }
+
+    toString() {
+        var str = "[";
+        for (var i = 0; i < this.len; i = i + 1) {
+            str = str + this.#value[i];
+            if (i < this.len - 1) str = str + ", ";
+        }
+        str = str + "]";
+        return str;
+    }
+
+    clone() {
+        var result = [];
+        for (var i = 0; i < this.len; i = i + 1) {
+            result[i] = this.#value[i];
+        }
+        return List(result, this.len);
+    }
+
+    reverse() {
+        var left = 0;
+        var right = this.len - 1;
+        while (left < right) {
+            var temp = this.#value[left];
+            this.#value[left] = this.#value[right];
+            this.#value[right] = temp;
+            left = left + 1;
+            right = right - 1;
+        }
+    }
+
+    slice(start, end) {
+        if (start < 0 or end > this.len or start > end) {
+            throw IndexOutOfBoundsError("Invalid slice range.");
+        }
+
+        var result = [];
+        for (var i = start; i < end; i = i + 1) {
+            result.append(this[i]);
+        }
+        return result;
+    }
+
+
+    sort() {
+        this.quickSort(0, this.len - 1);
+        return this;
+    }
+
+    quickSort(low, high) {
+        if (low < high) {
+            var p = this.partition(low, high);
+            this.quickSort(low, p - 1);
+            this.quickSort(p + 1, high);
+        }
+    }
+
+    partition(low, high) {
+        var pivot = this.#value[high];
+        var i = low - 1;
+
+        for (var j = low; j < high; j = j + 1) {
+            if (this.#value[j] <= pivot) {
+                i = i + 1;
+                this.swap(i, j);
+            }
+        }
+        this.swap(i + 1, high);
+        return i + 1;
+    }
+
+    swap(i, j) {
+        var temp = this.#value[i];
+        this.#value[i] = this.#value[j];
+        this.#value[j] = temp;
+    }
+
+
+
+
 }

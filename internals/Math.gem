@@ -6,14 +6,15 @@ class Math{
 
     static sqrt(num){
         if(num < 0){
-            throw Error("sqrt(x): invalid input " + num + " , must be non-negative");
+            throw RuntimeError("sqrt(x): invalid input " + num + " , must be non-negative");
         }
         var result = Math.pow(num, 0.5);
         return result;
     }
+
     static ln(num){
         if(num <= 0){
-            throw Error("ln(x): invalid input " + num + " , x must be greater than zero");
+            throw RuntimeError("ln(x): invalid input " + num + " , x must be greater than zero");
         }
 
         var k = 0;
@@ -87,4 +88,151 @@ class Math{
             return x - (x % 1) - k;
         }
     }
+
+    static abs(x){
+        if(x >= 0) return x;
+        else return -x;
+    }
+
+    static floor(x){
+        if(x >= 0) return x - (x % 1);
+        if(x % 1 == 0) return x;
+        return x - (x % 1) - 1;
+    }
+
+    static ceil(x){
+        if(x % 1 == 0) return x;
+        return x - (x % 1) + 1;
+    }
+
+    static max(a, b){
+        if(a > b) return a;
+        else return b;
+    }
+
+    static min(a, b){
+        return a + b - Math.max(a, b);
+    }
+
+    static sign(x){
+        if(x > 0) return 1;
+        if(x < 0) return -1;
+        return 0;
+    }
+
+    static clamp(x, min, max){
+        if(x < min) return min;
+        if(x > max) return max;
+        return x;
+    }
+
+    static mod(a, b){
+        var r = a % b;
+        if(r < 0) return r + b;
+        else return r;
+    }
+
+    static toRadians(deg){
+        return deg * Math.PI / 180;
+    }
+
+    static toDegrees(rad){
+        return rad * 180 / Math.PI;
+    }
+
+    static sin(x){
+        var term = x;
+        var sum = 0;
+        var sign = 1;
+        for(var i = 1; i <= 19; i = i + 2){
+            sum = sum + sign * term;
+            term = term * x * x / ((i + 1) * (i + 2));
+            sign = -sign;
+        }
+        return sum;
+    }
+
+    static cos(x){
+        var term = 1;
+        var sum = 0;
+        var sign = 1;
+        for(var i = 0; i <= 18; i = i + 2){
+            sum = sum + sign * term;
+            term = term * x * x / ((i + 1) * (i + 2));
+            sign = -sign;
+        }
+        return sum;
+    }
+
+    static tan(x){
+        if(x % (Math.PI / 2) == 0 and (x / (Math.PI / 2)) % 2 == 1){
+            return x/0;
+        }
+
+        var x2 = x * x;
+        var term = x;
+        var sum = x;
+
+        // Precomputed coefficients for tan(x) Taylor series (only odd powers)
+        var coeffs = [1, 1/3, 2/15, 17/315, 62/2835, 1382/155925];
+
+        for(var i = 1; i < coeffs.length; i = i + 1){
+            term = term * x2;
+            sum = sum + coeffs[i] * term;
+        }
+
+        return sum;
+    }
+
+    static asin(x){
+        if(x < -1 or x > 1){
+            throw RuntimeError("asin(x): input out of domain [-1, 1]");
+        }
+
+        var term = x;
+        var sum = x;
+        var x2 = x * x;
+        var num = 1;
+        var denom = 2;
+
+        for(var i = 1; i < 10; i = i + 1){
+            term = term * x2;
+            num = num * (2 * i - 1);
+            denom = denom * (2 * i);
+            sum = sum + (num / (denom * (2 * i + 1))) * term;
+        }
+
+        return sum;
+    }
+
+    static acos(x){
+        if(x < -1 or x > 1){
+                throw RuntimeError("acos(x): input out of domain [-1, 1]");
+        }
+        return Math.PI / 2 - Math.asin(x);
+    }
+
+    static atan(x){
+        var abs = Math.abs(x);
+
+        if(abs > 1){
+            var result = Math.PI / 2 - Math.atan(1 / abs);
+            if(x >= 0) return result;
+            else return -result;
+        }
+
+        var term = x;
+        var sum = x;
+        var x2 = x * x;
+        var sign = -1;
+
+        for(var i = 3; i <= 19; i = i + 2){
+            term = term * x2;
+            sum = sum + sign * term / i;
+            sign = -sign;
+        }
+
+        return sum;
+    }
+
 }

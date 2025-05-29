@@ -39,11 +39,13 @@ public class GenerateAst{
 			"Class      : Token name, Expr.Variable superclass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods, List<Stmt.Var> staticFields",
 			"Expression : Expr expression",
 			"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
-			"While      : Expr condition, Stmt body",
+			"While      : Expr condition, Stmt body, Stmt increment",
 			"Var        : Token name, Expr initializer",
 			"Return     : Token keyword, Expr value",
 			"Import     : String moduleName, Token keyword",
-			"Function   : Token name, List<Token> params, List<Stmt> body, String parent"
+			"Function   : Token name, List<Token> params, List<Stmt> body, String parent",
+			"Break      : Token keyword",
+			"Continue   : Token keyword"
 		));
 
 		

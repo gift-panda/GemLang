@@ -20,3 +20,5 @@ class RuntimeError{
 }
 
 class IllegalArgumentError : RuntimeError{}
+class NumberFormatError : RuntimeError{}
+class IndexOutOfBoundsError : RuntimeError{}

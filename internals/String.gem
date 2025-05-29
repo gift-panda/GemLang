@@ -19,6 +19,228 @@ class String{
         return this.#len;
     }
 
+    parseBoolean(){
+        if(this == "true") return true;
+        if(this == "false") return false;
+        if(this == "1") return true;
+        if(this == "0") return false;
+
+        throw BooleanFormatError(this + " cannot be converted to boolean.");
+    }
+
+    parse(){
+        try{
+            return this.parseNumber();
+        }
+        catch(e){}
+        try{
+            return this.parseBoolean();
+        }
+        catch(e){}
+
+        return this;
+    }
+
+    parseNumber(){
+        var num = 0;
+        try{
+            for(var i = 0; i < this.length(); i = i + 1){
+                if(!this[i].isDigit()) throw RuntimeError();
+                num = num * 10 + (asc(this[i]) - 48);
+            }
+        }
+        catch(e)
+        {
+            throw NumberFormatError(this + " cannot be converted to number");
+        }
+        return num;
+    }
+
+    isDigit(){
+        var check = asc(this[0]);
+        return check >= 48 and check <= 57;
+    }
+
+    isLetter() {
+        var check = asc(this[0]);
+        return (check >= 65 and check <= 90) or (check >= 97 and check <= 122);
+    }
+
+    isAlphanumeric() {
+        var check = asc(this[0]);
+        return (check >= 65 and check <= 90) or (check >= 97 and check <= 122) or (check >= 48 and check <= 57);
+    }
+
+    toUpperCase() {
+        var result = "";
+        for(var i = 0; i < this.length(); i = i + 1){
+            var c = this[i];
+            var code = asc(c);
+            if(code >= 97 and code <= 122) {
+                result = result + char(code - 32);
+            } else {
+                result = result + c;
+            }
+        }
+        return String(result);
+    }
+
+    toLowerCase() {
+        var result = "";
+        for(var i = 0; i < this.length(); i = i + 1){
+            var c = this[i];
+            var code = asc(c);
+            if(code >= 65 and code <= 90) {
+                result = result + char(code + 32);
+            } else {
+                result = result + c;
+            }
+        }
+        return String(result);
+    }
+
+    trim() {
+        var start = 0;
+        var end = this.length() - 1;
+
+        while(start <= end and (this[start] == " " or this[start] == "\t" or this[start] == "\n")) {
+            start = start + 1;
+        }
+
+        while(end >= start and (this[end] == " " or this[end] == "\t" or this[end] == "\n")) {
+            end = end - 1;
+        }
+
+        return this[start : end];
+    }
+
+    startsWith(prefix) {
+        if(!instanceOf(prefix, String) or prefix.length() > this.length()) return false;
+        for(var i = 0; i < prefix.length(); i = i + 1){
+            if(this[i] != prefix[i]) return false;
+        }
+        return true;
+    }
+
+    endsWith(suffix) {
+        if(!instanceOf(suffix, String) or suffix.length() > this.length()) return false;
+        var offset = this.length() - suffix.length();
+        for(var i = 0; i < suffix.length(); i = i + 1){
+            if(this[offset + i] != suffix[i]) return false;
+        }
+        return true;
+    }
+
+    replace(old, new) {
+        if(!instanceOf(old, String) or !instanceOf(new, String)) {
+            throw IllegalArgumentError("replace expects two strings");
+        }
+
+        var result = "";
+        var i = 0;
+
+        while(i < this.length()) {
+            var match = true;
+
+            for(var j = 0; j < old.length(); j = j + 1) {
+                if(i + j >= this.length() or this[i + j] != old[j]) {
+                    match = false;
+                    break;
+                }
+            }
+
+            if(match) {
+                result = result + new;
+                i = i + old.length();
+            } else {
+                result = result + this[i];
+                i = i + 1;
+            }
+        }
+
+        return String(result);
+    }
+
+    split(delimiter) {
+        if(!instanceOf(delimiter, String)) {
+            throw IllegalArgumentError("split expects a string delimiter");
+        }
+
+        var result = [];
+        var current = "";
+        var i = 0;
+
+        while(i < this.length()) {
+            var match = true;
+
+            for(var j = 0; j < delimiter.length(); j = j + 1) {
+                if(i + j >= this.length() or this[i + j] != delimiter[j]) {
+                    match = false;
+                    break;
+                }
+            }
+
+            if(match) {
+                result.append(String(current));
+                current = "";
+                i = i + delimiter.length();
+            } else {
+                current = current + this[i];
+                i = i + 1;
+            }
+        }
+
+        result.append(String(current));
+        return result;
+    }
+
+    indexOf(substring) {
+        if(!instanceOf(substring, String)) {
+            throw IllegalArgumentError("indexOf expects a string");
+        }
+
+        var len = this.length();
+        var subLen = substring.length();
+
+        for(var i = 0; i <= len - subLen; i = i + 1) {
+            var match = true;
+            for(var j = 0; j < subLen; j = j + 1) {
+                if(this[i + j] != substring[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if(match) return i;
+        }
+
+        return -1;
+    }
+
+    contains(substring) {
+        if (!instanceOf(substring, String)) {
+            throw IllegalArgumentError("contains expects a string argument");
+        }
+
+        var len = this.length();
+        var subLen = substring.length();
+
+        if (subLen == 0) return true;  // empty string always matches
+
+        for (var i = 0; i <= len - subLen; i = i + 1) {
+            var match = true;
+            for (var j = 0; j < subLen; j = j + 1) {
+                if (this[i + j] != substring[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) return true;
+        }
+
+        return false;
+    }
+
+
     toString(){
         return this.#value;
     }

@@ -8,19 +8,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import com.interpreter.gem.Scanner;
 
 public class Gem {
-	private static final Interpreter interpreter = new Interpreter();
+	private static Interpreter interpreter = new Interpreter();
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
-	private final static List<String> autoImports = List.of("gem.String", "gem.Number", "gem.Boolean", "gem.List");//, "gem.RuntimeError");
+	private final static List<String> autoImports = List.of("gem.String", "gem.Number", "gem.Boolean", "gem.List");
 	public static Path currentSourceFile;
+	public static boolean isTakingInput = false;
+
+	public static long pid;
 
     public static void main(String[] args) throws IOException {
-		//args = new String[]{"/home/meow/com/interpreter/gem/sample.gem"};
+		pid = ProcessHandle.current().pid();
+		System.out.println("JAR_PID:" + pid);
+
 		if (args.length > 1) {
 			System.err.println("Usage: gem [script]");
 			System.exit(64);
@@ -30,8 +36,9 @@ public class Gem {
 		} else {
 			runPrompt();
 		}
-	}
 
+		System.exit(0);
+	}
 
 	private static void runFile(String path) throws IOException {
 		byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -100,15 +107,13 @@ public class Gem {
 		//NOW COMES THE PROTAGONIST
 		interpreter.interpret(statements);
 	}
-
 	public static void error(int line, String message, Path file) {
 		report(line, "", message, file);
 	}
 
 	private static void report(int line, String where, String message, Path file) {
 		System.err.println("[Line " + line + "] Syntax Error" + where + ": " + message + "\nIn file " + file.getFileName());
-		System.exit(0);
-		hadError = true;
+		System.exit(2);
 	}
 
 	public static void error(Token token, String message) {

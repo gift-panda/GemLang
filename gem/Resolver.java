@@ -16,6 +16,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private ClassType currentClass = ClassType.NONE;
     private final List<String> internalImports = List.of("String", "Number", "Boolean");
     private final Path currentSourceFile;
+    private boolean inLoop = false;
 
     private enum ClassType {
         NONE,
@@ -283,6 +284,23 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        if (!inLoop) {
+            Gem.error(stmt.keyword, "Cannot use 'break' outside of a loop.");
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitContinueStmt(Stmt.Continue stmt) {
+        if (!inLoop) {
+            Gem.error(stmt.keyword, "Cannot use 'continue' outside of a loop.");
+        }
+        return null;
+    }
+
+
+    @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         resolve(stmt.expression);
         return null;
@@ -321,9 +339,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         resolve(stmt.condition);
+
+        boolean enclosingLoop = inLoop;
+        inLoop = true;
         resolve(stmt.body);
+        inLoop = enclosingLoop;
+
         return null;
     }
+
 
     @Override
     public Void visitBinaryExpr(Expr.Binary expr) {

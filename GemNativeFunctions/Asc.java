@@ -11,7 +11,7 @@ public class Asc implements GemCallable{
             return (double)(((String)arguments.getFirst()).charAt(0));
         }
 
-        return arguments.getFirst();
+        return null;
     }
 
     @Override

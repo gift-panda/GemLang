@@ -306,11 +306,15 @@ class Parser{
 		if(match(RETURN)) return returnStatement();
 		if(match(IMPORT)) return importStatement();
 		if(match(THROW)) return throwStatement();
-		if(match(TRY)) {
-			var v = tryStatement();
-			return v;
+		if(match(TRY)) {return tryStatement();}
+		if(match(BREAK)) {
+			consume(SEMICOLON, "Expect ';' after break.");
+			return new Stmt.Break(previous());
 		}
-		
+		if(match(CONTINUE)){
+			consume(SEMICOLON, "Expect ';' after continue.");
+			return new Stmt.Continue(previous());
+		}
 
 		return expressionStatement();
 	}
@@ -445,7 +449,11 @@ class Parser{
 		}
 
 		if(condition == null) condition = new Expr.Literal(true);
-		body = new Stmt.While(condition, body);
+
+		if(increment != null)
+			body = new Stmt.While(condition, body, new Stmt.Expression(increment));
+		else
+			body = new Stmt.While(condition, body, null);
 
 		if(initializer != null){
 			body = new Stmt.Block(Arrays.asList(initializer, body));
@@ -460,7 +468,7 @@ class Parser{
 		consume(RIGHT_PAREN, "Expected ')' after condition.");
 		Stmt body = statement();
 
-		return new Stmt.While(condition, body);
+		return new Stmt.While(condition, body, null);
 	}
 	
 	private Stmt ifStatement(){

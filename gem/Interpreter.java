@@ -1,5 +1,10 @@
 package com.interpreter.gem;
 
+import com.interpreter.GemNativeFunctions.Input;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import java.awt.event.ActionEvent;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -20,9 +25,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	public Path currentSourceFile = null;
 	private final List<String> alreadyImported = new ArrayList<>();
 	private String currentClass = "~";
-	private static Stack<String> stackTrace = new Stack<>();
+	public static Stack<String> stackTrace = new Stack<>();
 
 	public static Path sourcePath;
+
+	public class Break extends RuntimeException {}
+	public class Continue extends RuntimeException {}
 
     static {
         try {
@@ -267,7 +275,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	private Object evaluate(Expr expr){
-	    	return (expr.accept(this));
+		return (expr.accept(this));
 	}
 
 	private boolean isTruthy(Object object){
@@ -311,11 +319,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			}
 		}catch (GemThrow error) {
 			System.err.println("[Line " + error.line + "] " + error.name + ": " + error.msg);
-			System.exit(0);
+			System.exit(70);
 		}
 	}
 
-	private void execute(Stmt stmt){
+	private void execute(Stmt stmt) {
 		stmt.accept(this);
 	}
 
@@ -446,11 +454,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 	}
 
 	@Override
-	public Void visitWhileStmt(Stmt.While stmt){
-		while(isTruthy(evaluate(stmt.condition)))
-			execute(stmt.body);
+	public Void visitWhileStmt(Stmt.While stmt) {
+		try {
+			while (isTruthy(evaluate(stmt.condition))) {
+				try {
+					execute(stmt.body);
+				} catch (Continue e) {
+					if(stmt.increment != null){
+						//System.out.println("dis is not null");
+						Environment prev = environment;
+						environment = new Environment(environment);
+						execute(stmt.increment);
+						environment = prev;
+						//System.out.println("done increment");
+						//environment.get("i");
+					}
+				}
+			}
+		} catch (Break e) {}
 		return null;
 	}
+
+
 
 	public static Object unwrapAll(Object obj) {
 		obj = unwrap(obj); // Unwrap once
@@ -493,14 +518,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				throw new RuntimeException();
 			}
 
-			if(callee.toString().equals("<native fn>")){
+			if(callee.toString().contains("native")){
 				for(int i = 0; i < arguments.size(); i++){
 					arguments.set(i, unwrapAll(arguments.get(i)));
 				}
 			}
-
 			stackTrace.add("at "+ varExpr.name.lexeme + " (" + varExpr.name.sourceFile.getFileName() + ":" + varExpr.name.line + ")");
-			Object result = function.call(this, arguments);
+
+			Object result;
+			result = function.call(this, arguments);
+
 			stackTrace.pop();
 
 			if(callee instanceof GemClass && result instanceof String strResult){
@@ -691,6 +718,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 					new FunctionDispatcher(stmt.name.lexeme, environment, stmt.name));
 		}
 		return null;
+	}
+
+	@Override
+	public Void visitBreakStmt(Stmt.Break stmt) {
+		throw new Break();
+	}
+
+	@Override
+	public Void visitContinueStmt(Stmt.Continue stmt) {
+		throw new Continue();
 	}
 
 	public static String mangleName(String name, int arity) {

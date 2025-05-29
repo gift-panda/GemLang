@@ -3,32 +3,28 @@ package com.interpreter.GemNativeFunctions;
 import com.interpreter.gem.GemCallable;
 import com.interpreter.gem.Interpreter;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.Writer;
 import java.util.List;
-import java.util.Scanner;
 
-public class Input implements GemCallable{
+public class Char implements GemCallable{
     @Override
     public Object call(Interpreter interpreter, List<Object> arguments) {
-        Scanner sc = new Scanner(System.in);
-        String line =  sc.nextLine();
-
-        return line;
+        if (arguments.get(0) instanceof Double ascii) {
+            return String.valueOf((char)ascii.intValue());
+        }
+        return null;
     }
 
     @Override
     public int arity() {
-        return 0;
+        return 1;
     }
 
     @Override
     public String name() {
-        return "input";
+        return "char";
     }
 
     public String toString(){
-        return "<native 'input'>";
+        return "<native 'char'>";
     }
 }
