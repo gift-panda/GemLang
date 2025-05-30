@@ -18,8 +18,7 @@ Declares a variable and assigns a value.
 also decomposed into
 
     var name;
-
-name = value;
+    name = value;
 
 Loops
 =================
@@ -42,105 +41,99 @@ Functions
 ==================
 
 For functions:
+
     func name(param1, param2, ...){
         body
     }
 
 Functions are overloaded by arity
 
-func name(param1){ body }
+    func name(param1){
+        body 
+    }
+    func name(param1, param2){
+        body 
+    }
 
-func name(param1, param2){ body }
+Both are dispatched at runtime to their correct function calls.
 
-//Both are dispatched at runtime to their correct function calls.
+Functions can be binded to any name.
 
-//Functions can be binded to any name.
-
-func name(params){body}
-
-var bind = name;
-
-bind(params);
+    func name(params){
+        body
+    }
+    var bind = name;
+    bind(params);
 
 Classes
 ====================
 
-class className : superClass(){ // className is the child class. superClass is the parent class. 
+    class className : superClass(){ // className is the child class. superClass is the parent class. 
 
-    var var1 = value; //Treated as public & static fields
-    var #var = value; //Treated as private & static fields. 
+        var var1 = value; //Treated as public & static fields
+        var #var = value; //Treated as private & static fields. 
 
-    static staticFunc(params){ //Treated as static function.
-        //Can access private and static fields here
-        body
-    }
+        static staticFunc(params){ //Treated as static function.
+            //Can access private and static fields here
+            body
+        }
 
-    instFunc(params){ //Treated as instance functions.
-        this.var2 = value; //Treated as public & instance fields.
-        this.#var3 = value; //Treated as private & instance fields.
+        instFunc(params){ //Treated as instance functions.
+            this.var2 = value; //Treated as public & instance fields.
+            this.#var3 = value; //Treated as private & instance fields.
 
-        //Can access private and static fields here.
-        //Can access private and instance fields here.
+            //Can access private and static fields here.
+            //Can access private and instance fields here.
         
-        body
-    }
+            body
+        }
 
-    init(params){ //Constructor of the class.
+        init(params){ //Constructor of the class.
                   //Default constructor with no parms created implicitly when explicitly not defined.
                   //Can be private #init() to stop creation of instances.
-        body
-    }
+            body
+        }
 
-    toString(){ //Implicitly called by the interpreter when 1. Printing a instance. 2. Added instances to strings. 
+        toString(){ //Implicitly called by the interpreter when 1. Printing a instance. 2. Added instances to strings. 
                 //Default created for all class implicitly is explicitly not defined.
-        return string;
+            return string;
+        }
     }
-}
 
 
-className.var1; //Accessing static fields
-
-className.staticFunct(params) //Accessing static methods.
-
-this.var2 or inst.var2; //Accessing instance fields.
-
-className(params) //Creating instance of a class. <init>s are overloaded and dispatched too.
+    className.var1; //Accessing static fields
+    className.staticFunct(params) //Accessing static methods.
+    this.var2 or inst.var2; //Accessing instance fields.
+    className(params) //Creating instance of a class. <init>s are overloaded and dispatched too.
 
 
 Errors
 =====================
 
-RuntimeError(String); //The base error class
+    var errorInstanceRuntimeError(String); //The base error class
 
-//Extend your class using RuntimeError to be throw
+    //Extend your class using RuntimeError to be throw
 
-throw errorInstance; //To throw a error
+    throw errorInstance; //To throw a error
 
-//or
+    //or
 
-throw SomeError("message"); //To throw your error
+    throw SomeError("message"); //To throw your error
 
-//or
+    //or
 
-throw RuntimeError("message"); //To throw the default RuntimeError.
+    throw RuntimeError("message"); //To throw the default RuntimeError.
 
-try{
 
-    body
-
-}
-
-catch(IDENTIFIER){ //IDENTIFIER is the captured the error.
-
-    body
-
-}
-
-finally{
-
-    body
-
-}
+    try{
+        body
+    }
+    catch(IDENTIFIER){ //IDENTIFIER is the captured the error.
+        body
+    }
+    finally{
+        body
+    }
 
 PreBuilt Errors:
 
