@@ -27,7 +27,7 @@ class List {
         return this;
     }
 
-    insert(index, value) {
+    insert(value, index) {
         if (index < 0 or index > this.len) {
             throw IndexOutOfBoundsError("Index out of bounds in insert().");
         }
@@ -61,7 +61,7 @@ class List {
         return this.#value[index];
     }
 
-    set(index, value) {
+    set(value, index) {
         if (index < 0 or index >= this.len) {
             throw IndexOutOfBoundsError("Index out of bounds in set().");
         }
@@ -83,11 +83,8 @@ class List {
     }
 
     clear() {
+        this.#value = [].#value;
         this.len = 0;
-    }
-
-    length() {
-        return this.len;
     }
 
     isEmpty() {
@@ -129,11 +126,7 @@ class List {
             throw IndexOutOfBoundsError("Invalid slice range.");
         }
 
-        var result = [];
-        for (var i = start; i < end; i = i + 1) {
-            result.append(this[i]);
-        }
-        return result;
+        return this[start : end];
     }
 
 
@@ -144,13 +137,13 @@ class List {
 
     quickSort(low, high) {
         if (low < high) {
-            var p = this.partition(low, high);
+            var p = this.#partition(low, high);
             this.quickSort(low, p - 1);
             this.quickSort(p + 1, high);
         }
     }
 
-    partition(low, high) {
+    #partition(low, high) {
         var pivot = this.#value[high];
         var i = low - 1;
 
@@ -169,8 +162,4 @@ class List {
         this.#value[i] = this.#value[j];
         this.#value[j] = temp;
     }
-
-
-
-
 }

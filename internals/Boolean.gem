@@ -10,9 +10,6 @@ class Boolean{
         }
         this.#value = value.#value;
     }
-    isFalse(){
-        return !this.#value;
-    }
     toString(){
         return this.#value;
     }

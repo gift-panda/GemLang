@@ -20,5 +20,7 @@ class RuntimeError{
 }
 
 class IllegalArgumentError : RuntimeError{}
+class IllegalArgumentsError : RuntimeError{}
 class NumberFormatError : RuntimeError{}
+class BooleanFormatError : RuntimeError{}
 class IndexOutOfBoundsError : RuntimeError{}
