@@ -68,7 +68,8 @@ Functions can be binded to any name.
 Classes
 ====================
 
-    class className : superClass(){ // className is the child class. superClass is the parent class. 
+    class className : superClass(){ 
+        // className is the child class. superClass is the parent class. 
 
         var var1 = value; //Treated as public & static fields
         var #var = value; //Treated as private & static fields. 
@@ -103,6 +104,7 @@ Classes
 
     className.var1; //Accessing static fields
     className.staticFunct(params) //Accessing static methods.
+
     this.var2 or inst.var2; //Accessing instance fields.
     className(params) //Creating instance of a class. <init>s are overloaded and dispatched too.
 
@@ -116,7 +118,7 @@ Types of Errors:
 
 RuntimeErrors:
 
-    var errorInstanceRuntimeError(String); 
+    var errorInstance = RuntimeError(String); 
     //The base error class
     //Extend your class using RuntimeError to be throw
 
@@ -151,11 +153,9 @@ PreBuilt Errors:
 
 Properties of RuntimeErrors:
 
-getMessage() -> Returns the message passed
-
-getStackTrace() -> Returns the stack trace associated with the object
-
-toString() -> Returns the message shown when thrown
+1. getMessage() -> Returns the message passed
+2. getStackTrace() -> Returns the stack trace associated with the object
+3. toString() -> Returns the message shown when thrown
 
 
 Value Types
@@ -170,19 +170,14 @@ All are wrapped at time of creation implicitly.
 
 Lists and Strings are special as they support indexing and slicing.
 
-
-var a = "Some String";
-
-a[num] -> Gives the character present at index num.
-
-a[start:end] -> Gives a substring of the string from index start to end.
+    var a = "Some String";
+    a[num] -> Gives the character present at index num.
+    a[start:end] -> Gives a substring of the string from index start to end.
 
 
-var b = [1, 2, 3, 4, 5];
-
-b[num] -> Gives the value present at index num.
-
-b[start:end] -> Gives a list containing the values from index start to end.
+    var b = [1, 2, 3, 4, 5];
+    b[num] -> Gives the value present at index num.
+    b[start:end] -> Gives a list containing the values from index start to end.
 
 Wrapper Classes
 ======================
@@ -197,14 +192,17 @@ All inbuilt types are wrapped into the following wrapper classes:
 4. List
 
 Number function:
+
 1. init(Number) -> Provided for support. Creates a new Number using existing Number object
 2. toString() -> Provided for support. Returns the number.
 
 Boolean functions:
+
 1. init(Boolean) -> Provided for support. Creates a new Boolean using existing Boolean object.
 2. toString() -> Provided for support. Returns the boolean.
 
 String functions:
+
 1. init(String) -> Provided for support. Creates a new String using an existing string.
 2. parse() -> Parses the string and returns a Boolean, Number, or a String if conversion not possible.
 3. parseBoolean() -> Forces a Boolean to be parsed. Throws BooleanFormatError if conversion not possible.
@@ -225,6 +223,7 @@ String functions:
 18. length() -> Returns the length of the string.
 
 List functions:
+
 1. init(list) -> Provided for support. Creates a new List object using an existing List.
 2. length() -> Returns the length of the list.
 3. append(value) -> Adds a value to the end of the list.
@@ -245,6 +244,7 @@ List functions:
 18. swap(i, j) -> swaps the position of two values by index.
 
 Math functions:
+
 1. static sqrt(num) -> Returns the square root of a number.
 2. static ln(num) -> Returns the natural log of a number.
 3. static exp(num) -> Returns e raised to the power of num.
@@ -271,6 +271,7 @@ Math functions:
 
 General Utility functions
 ==========================
+
 1. instanceOf(instance, clazz) -> Checks if a object is the instance of a class.
 2. isChildOf(child, parent) -> Check if a class extends another class directly or indirectly.
 3. isClass(clazz) -> Checks if a value is a class.
@@ -279,6 +280,7 @@ General Utility functions
 
 Native Functions
 ==========================
+
 1. asc(string) -> Returns the ascii of the first character in a string.
 2. char(ascii) -> Returns the character corresponding to the given ascii.
 3. clock() -> Returns the current system time in miliseconds.
