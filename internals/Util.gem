@@ -14,7 +14,35 @@ func instanceOf(instance, clazz){
         throw IllegalArgumentError("A instance must be passed in arg 1.");
     }
 
-    return type(clazz)[8: type(clazz).length() - 3] == type(instance)[7:type(instance).length()-3];
+    var superClazz = nil;
+    if(instance.getClass() == clazz){
+        return true;
+    }
+    else if((superClazz = instance.getClass().getSuper()) != nil){
+        return isChildOf(instance.getClass(), clazz);
+    }
+    else
+        return false;
+}
+
+func isChildOf(child, parent){
+    if(child == nil or parent == nil or !isClass(child) or !isClass(parent)){
+        throw IllegalArgumentError("isChildOf(class, class): expected classes in arguments.");
+    }
+
+    if(child == parent) return true;
+    if(child.getSuper() != nil){
+        return isChildOf(child.getSuper(), parent);
+    }
+    return false;
+}
+
+func isClass(clazz){
+    return type(clazz)[1:5] == "class";
+}
+
+func isInstance(inst){
+    return type(inst)[1:4] == "inst";
 }
 
 func getName(obj){

@@ -1,10 +1,5 @@
 package com.interpreter.gem;
 
-import com.interpreter.GemNativeFunctions.Input;
-
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import java.awt.event.ActionEvent;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -847,6 +842,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			methods.put(mangled, new GemFunction(method, environment, isInit, method.parent));
 		}
 
+		// Inject instance getClass method
+		Stmt.Function getClassMethod = makeGetClassMethod(stmt.name);
+		String instanceMangled = mangleName("getClass", 0);
+		methods.put(instanceMangled, new GemFunction(getClassMethod, environment, false, stmt.name.lexeme));
+
 		for (Stmt.Function method : stmt.staticMethods) {
 			String name = method.name.lexeme;
 			int arity = method.params.size();
@@ -855,6 +855,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 			String mangled = mangleName(name, arity);
 			staticMethods.put(mangled, new GemFunction(method, environment, false, method.parent));
 		}
+
+		// Inject static getSuper method
+		Stmt.Function getSuperMethod = makeGetSuperMethod(stmt.name);
+		String mangled = mangleName("getSuper", 0);
+		staticMethods.put(mangled, new GemFunction(getSuperMethod, environment, false, stmt.name.lexeme));
+
 
 		for(Stmt.Var var: stmt.staticFields){
 			String name = var.name.lexeme;
@@ -866,7 +872,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		}
 
         assert superclass instanceof GemClass;
-        GemClass klass = new GemClass(stmt.name.lexeme, (GemClass)superclass,methods, staticMethods, staticFields, currentSourceFile);
+		GemClass klass = new GemClass(stmt.name.lexeme, (GemClass) superclass ,methods, staticMethods, staticFields, currentSourceFile);
 
 		if(superclass != null){
 			environment = environment.enclosing;
@@ -874,6 +880,41 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		environment.assign(stmt.name, klass);
 		return null;
 	}
+
+	private Stmt.Function makeGetSuperMethod(Token className) {
+		List<Token> params = Collections.emptyList();
+
+		// Create `return super;` expression
+		Expr returnExpr = new Expr.Variable(new Token(TokenType.IDENTIFIER, "super", null, className.line, currentSourceFile), "");
+		Stmt returnStmt = new Stmt.Return(className, returnExpr);
+
+		// Wrap into a block body
+		List<Stmt> body = Collections.singletonList(returnStmt);
+
+		// Construct function token
+		Token nameToken = new Token(TokenType.IDENTIFIER, "getSuper", null, className.line, currentSourceFile);
+
+		// Return synthetic Stmt.Function
+		return new Stmt.Function(nameToken, params, body, className.lexeme);
+	}
+
+	private Stmt.Function makeGetClassMethod(Token className) {
+		List<Token> params = Collections.emptyList();
+
+		// Create `return this;` expression
+		Expr returnExpr = new Expr.This(className);
+		Stmt returnStmt = new Stmt.Return(className, returnExpr);
+
+		// Wrap into a block body
+		List<Stmt> body = Collections.singletonList(returnStmt);
+
+		// Construct function token
+		Token nameToken = new Token(TokenType.IDENTIFIER, "getClass", null, className.line, currentSourceFile);
+
+		// Return synthetic Stmt.Function
+		return new Stmt.Function(nameToken, params, body, className.lexeme);
+	}
+
 
 	@Override
 	public Object visitThisExpr(Expr.This expr) {

@@ -21,8 +21,6 @@ public class GemClass implements GemCallable{
         this.staticFields = staticFields;
         this.currentSourceFile = currentFile;
 
-        //System.out.println(name + " : " + methods.keySet());
-
         List<Object> keyset = new ArrayList<>(methods.keySet());
         Interpreter.scopes.put(name, keyset);
     }

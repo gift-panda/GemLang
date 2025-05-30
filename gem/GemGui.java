@@ -171,8 +171,6 @@ public class GemGui {
                 return;
             }
             try {
-                // 1. Write editor content to temp file main.gem
-
                 terminalPanel.terminalPane.setEditable(true);
 
                 KeyEvent pressEvent = new KeyEvent(terminalPanel.terminalPane, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, '\n');
