@@ -1,17 +1,11 @@
 import gem.RuntimeError;
 
 func instanceOf(instance, clazz){
-    if(type(clazz) == nil){
-        throw IllegalArgumentError("A class must be passed in arg 2.");
+    if(instance == nil or !isInstance(instance)){
+        throw IllegalArgumentError("instanceOf(instance, class): Expected a instance.");
     }
-    if(type(clazz)[1:5] != "class"){
-        throw IllegalArgumentError("A class must be passed in arg 2.");
-    }
-    if(type(instance) == nil){
-        throw IllegalArgumentError("A instance must be passed in arg 1.");
-    }
-    if(type(instance)[1:4] != "inst"){
-        throw IllegalArgumentError("A instance must be passed in arg 1.");
+    if(clazz == nil or !isClass(clazz)){
+        throw IllegalArgumentError("instanceOf(instance, class): Expected a class.");
     }
 
     var superClazz = nil;

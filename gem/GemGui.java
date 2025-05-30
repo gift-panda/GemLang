@@ -24,6 +24,10 @@ public class GemGui {
         UIManager.put("Label.foreground", Color.BLACK);
         UIManager.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         SwingUtilities.invokeLater(GemGui::createGUI);
     }
 
