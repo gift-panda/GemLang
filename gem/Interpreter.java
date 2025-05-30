@@ -99,9 +99,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
-
 		Object leftRaw = unwrap(left);
 		Object rightRaw = unwrap(right);
+
 
 		switch (expr.operator.type) {
 			case BANG_EQUAL:
@@ -144,8 +144,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				}
 
 				if (leftRaw instanceof String || rightRaw instanceof String) {
-					String leftText = leftRaw != null ? leftRaw.toString() : "nil";
-					String rightText = rightRaw != null ? rightRaw.toString() : "nil";
+					String leftText = (String) stringify(leftRaw);
+					String rightText = (String) stringify(rightRaw);
 
 					// Trim .0 from double-as-string if desired
 					if (leftText.endsWith(".0")) {
@@ -331,6 +331,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				text = text.substring(0, text.length() - 2);
 			}
 			return Double.parseDouble(text);
+		}
+
+		if(object instanceof GemInstance instance){
+			GemFunction function = instance.klass.findMethod(Interpreter.mangleName("toString",0));
+			if(function != null) {
+				function = function.bind(instance);
+				Object result = Interpreter.unwrapAll(function.call(new Interpreter(), new ArrayList<>()));
+				return stringify(unwrap(result));
+			}
 		}
 
 		return object;

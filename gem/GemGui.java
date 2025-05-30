@@ -40,7 +40,7 @@ public class GemGui {
         setupTextArea(editorArea);
 
         TerminalPanel terminalPanel = new TerminalPanel();
-        terminalPanel.terminalPane.setEditable(false);
+        terminalPanel.terminalPane.setEditable(true);
 
         JScrollPane editorScroll = new JScrollPane(editorArea);
 
@@ -88,6 +88,21 @@ public class GemGui {
         frame.setVisible(true);
 
         editorArea.setBorder(new RoundedBorder(10));
+
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            editorArea.setFont(new Font("Consolas", Font.PLAIN, 14));  // fallback
+            loadButton.setFont(new Font("Consolas", Font.PLAIN, 14));
+            clearButton.setFont(new Font("Consolas", Font.PLAIN, 14));
+            themeButton.setFont(new Font("Consolas", Font.PLAIN, 14));
+            runButton.setFont(new Font("Consolas", Font.PLAIN, 14));
+        } else {
+            editorPanel.setFont(new Font("Monospaced", Font.PLAIN, 14));  // fallback
+            loadButton.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            clearButton.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            themeButton.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            runButton.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        }
 
         loadButton.addActionListener(e -> {
             FileDialog fileDialog = new FileDialog(frame, "Select a .gem file", FileDialog.LOAD);
@@ -184,13 +199,12 @@ public class GemGui {
                 Files.writeString(tempFile.toPath(), editorArea.getText(), StandardCharsets.UTF_8);
                 tempFile.deleteOnExit();
 
-                String os = System.getProperty("os.name");
                 String command = "";
                 if (os.contains("win")) {
                     String ps = System.getenv("SystemRoot") + "\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
                     File powershell = new File(ps);
                     if (powershell.exists()) {
-                        command = "Clear-Host; java -jar Interpreter.jar " + tempFile.getName() + "; Write-Output \"Process exited with code $LASTEXITCODE\"";
+                        command = "clear; java -jar Interpreter.jar " + tempFile.getName() + "; Write-Output \"Process exited with code $LASTEXITCODE\"";
                     } else {
                         command = "cls & java -jar Interpreter.jar " + tempFile.getName() + " & echo Process exited with code %ERRORLEVEL%";
                     }
@@ -282,4 +296,3 @@ class RoundedBorder implements Border {
         g.drawRoundRect(x + 5, y + 5, width - 10, height - 15, radius, radius);
     }
 }
-

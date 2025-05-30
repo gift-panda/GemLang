@@ -14,6 +14,8 @@ public class TerminalPanel extends JPanel {
     private BufferedWriter processInput;
     private Process shellProcess;
     public static Long lastPid = null;  // Store PID from jar
+    private boolean clearedInitialBanner = false;
+
 
     private static final Pattern PID_PATTERN = Pattern.compile("JAR_PID:(\\d+)");
 
@@ -23,12 +25,32 @@ public class TerminalPanel extends JPanel {
         terminalPane = new JTextPane() {
             @Override
             protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();  // <== important
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                super.paintComponent(g2);
+                g2.dispose();
+            }
+
+            @Override
+            protected void paintChildren(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();  // <== important
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                super.paintChildren(g2);
+                g2.dispose();
             }
         };
+
+
+        UIManager.put("Label.opaque", Boolean.TRUE);
+        UIManager.put("Label.font", new JLabel().getFont());
+        UIManager.put("Label.foreground", Color.BLACK);
+        UIManager.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
 
         terminalPane.setFont(new Font("Monospaced", Font.PLAIN, 14));
         terminalPane.setMargin(new Insets(5, 5, 5, 5));
@@ -60,9 +82,9 @@ public class TerminalPanel extends JPanel {
             @Override
             public void remove(FilterBypass fb, int offset, int length)
                     throws BadLocationException {
-                if (offset >= promptPosition) {
-                    super.remove(fb, offset, length);
-                }
+                //if (offset >= promptPosition) {
+                super.remove(fb, offset, length);
+                //}
             }
         });
 
@@ -203,14 +225,30 @@ public class TerminalPanel extends JPanel {
         if (m.find()) {
             lastPid = Long.parseLong(m.group(1));
         } else {
-            if(line.contains("Process exited with code")) {
+            if (!clearedInitialBanner && line.toLowerCase().contains("powershell")) {
+                doc.remove(0, doc.getLength()); // clear PowerShell banner
+                promptPosition = 0;
+                clearedInitialBanner = true;
+                return;
+            }
+
+            if (line.contains("Process exited with code")) {
                 GemGui.runButton.setText("\u25B6 Run");
                 terminalPane.setEditable(false);
             }
+
             terminalPane.setCaretPosition(terminalPane.getDocument().getLength());
+
+            if (line.contains("C:\\")) return; // optional, your logic
+
             doc.insertString(doc.getLength(), line, null);
+
+            if (line.contains("clear")) {
+                doc.remove(0, doc.getLength());
+            }
         }
     }
+
 
 
     private SimpleAttributeSet parseAnsiColor(String code) {
@@ -293,11 +331,14 @@ public class TerminalPanel extends JPanel {
                 File powershell = new File(ps);
                 if (powershell.exists()) {
                     builder = new ProcessBuilder(ps);
+                    terminalPane.setFont(new Font("Consolas", Font.PLAIN, 14));  // fallback
                 } else {
                     builder = new ProcessBuilder("cmd.exe");
+                    terminalPane.setFont(new Font("Consolas", Font.PLAIN, 14));  // fallback
                 }
             } else {
                 builder = new ProcessBuilder("/bin/bash");
+                terminalPane.setFont(new Font("Monospaced", Font.PLAIN, 14));  // fallback
             }
 
             builder.environment().put("TERM", "xterm");

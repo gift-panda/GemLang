@@ -38,6 +38,8 @@ class String{
         }
         catch(e){}
 
+        if(this == "nil") return nil;
+
         return this;
     }
 
