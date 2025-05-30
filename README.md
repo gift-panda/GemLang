@@ -10,27 +10,43 @@ Run the Interpreter.jar from the terminal, passing the path to a .gem file for e
 
 Declarations
 =================
-var name = value; // declares a variable and assigns a value.
-//also decomposed into
-var name;
+    
+    var name = value;
+
+Declares a variable and assigns a value.
+
+also decomposed into
+
+    var name;
+
 name = value;
 
 Loops
 =================
-for(var i = start; i <= end; i = i + 1){body}
 
-while(condition){body}
+    for(var i = start; i <= end; i = i + 1){
+        body
+    }
+    while(condition){
+        body
+    }
 
-{body} // Independent blocks with their own scopes
+These are Indeprendent blocks with their own scopes
+
+    {
+        body
+    } 
+
 
 Functions
 ==================
-func name(param1, param2, ...){
-    body
-}
-// for functions.
 
-//Functions are overloaded by arity
+For functions:
+    func name(param1, param2, ...){
+        body
+    }
+
+Functions are overloaded by arity
 
 func name(param1){ body }
 
