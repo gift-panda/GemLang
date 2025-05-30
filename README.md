@@ -110,20 +110,23 @@ Classes
 Errors
 =====================
 
-    var errorInstanceRuntimeError(String); //The base error class
+Types of Errors:
+1. RuntimeError -> Thrown by the interpreter at runtime.
+2. SyntaxError -> Thrown by the lexer, parser and resolver at compiletime.
 
+RuntimeErrors:
+
+    var errorInstanceRuntimeError(String); 
+    //The base error class
     //Extend your class using RuntimeError to be throw
 
     throw errorInstance; //To throw a error
-
     //or
-
     throw SomeError("message"); //To throw your error
-
     //or
-
     throw RuntimeError("message"); //To throw the default RuntimeError.
 
+To catch a RuntimError
 
     try{
         body
@@ -134,6 +137,8 @@ Errors
     finally{
         body
     }
+
+
 
 PreBuilt Errors:
 
