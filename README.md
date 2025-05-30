@@ -142,8 +142,7 @@ To catch a RuntimError
 
 
 
-PreBuilt Errors:
-
+__InBuilt Errors:__
 1. RuntimeError
 2. IllegalArgumentError
 3. IllegalArgumentsError
@@ -151,8 +150,7 @@ PreBuilt Errors:
 5. NumberFormatError
 6. BooleanFormatError
 
-Properties of RuntimeErrors:
-
+__Properties of RuntimeErrors:__
 1. getMessage() -> Returns the message passed
 2. getStackTrace() -> Returns the stack trace associated with the object
 3. toString() -> Returns the message shown when thrown
@@ -160,7 +158,8 @@ Properties of RuntimeErrors:
 
 Value Types
 =====================
-There exist:
+
+__There exist:__
 1. Number
 2. Boolean
 3. String
@@ -184,25 +183,23 @@ Wrapper Classes
 
 Gem doesnt contain any primitive type exposed to the user.
 
-All inbuilt types are wrapped into the following wrapper classes:
+All inbuilt types are wrapped into wrapper classes.
 
+__Including:__
 1. Number
 2. Boolean
 3. String
 4. List
 
-Number function:
-
+__Number function:__
 1. init(Number) -> Provided for support. Creates a new Number using existing Number object
 2. toString() -> Provided for support. Returns the number.
 
-Boolean functions:
-
+__Boolean functions:__
 1. init(Boolean) -> Provided for support. Creates a new Boolean using existing Boolean object.
 2. toString() -> Provided for support. Returns the boolean.
 
-String functions:
-
+__String functions:__
 1. init(String) -> Provided for support. Creates a new String using an existing string.
 2. parse() -> Parses the string and returns a Boolean, Number, or a String if conversion not possible.
 3. parseBoolean() -> Forces a Boolean to be parsed. Throws BooleanFormatError if conversion not possible.
@@ -222,8 +219,7 @@ String functions:
 17. toString() -> Provided for support. Returns the given string.
 18. length() -> Returns the length of the string.
 
-List functions:
-
+__List functions:__
 1. init(list) -> Provided for support. Creates a new List object using an existing List.
 2. length() -> Returns the length of the list.
 3. append(value) -> Adds a value to the end of the list.
@@ -243,8 +239,7 @@ List functions:
 17. quickSort() -> Performs QuickSort on the list.
 18. swap(i, j) -> swaps the position of two values by index.
 
-Math functions:
-
+__Math functions:__
 1. static sqrt(num) -> Returns the square root of a number.
 2. static ln(num) -> Returns the natural log of a number.
 3. static exp(num) -> Returns e raised to the power of num.
