@@ -354,81 +354,81 @@ __String functions:__
 
 2. parse() -> Parses the string and returns a Boolean, Number, or a String if conversion not possible.
 
-    str.parser(); -> "Hello, world!"
-    num.parse(); -> 20
-    bool.parse(); -> true
+        str.parser(); -> "Hello, world!"
+        num.parse(); -> 20
+        bool.parse(); -> true
     
 3. parseBoolean() -> Forces a Boolean to be parsed. Throws BooleanFormatError if conversion not possible.
 
-    bool.parseBoolean(); -> true;
+        bool.parseBoolean(); -> true;
 
 4. parseNumber() -> Forces a Number to be parsed. Throws NumberFormatError if coneversion not possible.
 
-    num.parseNumber(); -> 20
+        num.parseNumber(); -> 20
 
 5. isDigit() -> Returns a Boolean by checking if the first character of the given string is a digit.
 
-    num.isDigit(); -> true
+        num.isDigit(); -> true
 
 6. isLetter() -> Returns a Boolean by checking if the first character of the given string is a letter.
 
-    str.isLetter(); -> true
-    bool.isLetter(); -> true
+        str.isLetter(); -> true
+        bool.isLetter(); -> true
 
 7. isAlphanumeric() -> Returns a Boolean by checking if the first character of the given string is either a digit or a letter.
 
-    str.isAlphanumeric(); -> true
-    num.isAlphanumeric(); -> true
-    bool.isAlphanumeric(); -> true
-    "!".isAlphanumeric(); -> false
+        str.isAlphanumeric(); -> true
+        num.isAlphanumeric(); -> true
+        bool.isAlphanumeric(); -> true
+        "!".isAlphanumeric(); -> false
 
 8. toUpperCase() -> Returns a String by changing all the lowercase letters into uppercase.
 
-    str.toUpperCase(); -> "HELLO, WORLD!"
+        str.toUpperCase(); -> "HELLO, WORLD!"
 
 9. toLowerCase() -> Returns a String by changing all the uppercase letters into lowercase.
 
-    str.toLowerCase(); -> "hello, world!"
+        str.toLowerCase(); -> "hello, world!"
 
 10. trim() -> Returns a String by stripping off the leading/trailing white spaces.
 
-    "   Hello, world!    ".trim(); -> "Hello, world!"
+        "   Hello, world!    ".trim(); -> "Hello, world!"
 
 11. startsWith(prefix) -> Returns a Boolean by checking if the given string starts with the given prefix.
 
-    str.startsWith("Hello"); -> true
-    str.startsWith("hello"); -> false
+        str.startsWith("Hello"); -> true
+        str.startsWith("hello"); -> false
 
 12. endsWith(suffix) -> Returns a Boolean by checking if the given string ends with the given suffix.
 
-    str.endsWith("world"); -> false
-    str.endsWith("world!"); -> true
+        str.endsWith("world"); -> false
+        str.endsWith("world!"); -> true
 
 13. replace(old, new) -> Returns a String by replacing every occurrence of the old substring with the new substring in the string.
 
-    "foo bar foo".replace("foo", "baz"); -> "baz bar baz"
+        "foo bar foo".replace("foo", "baz"); -> "baz bar baz"
 
 14. split(delimiter) -> Returns a List by separating the string into chunks using the delimiter string.
 
-    "a,b,c".split(","); -> ["a", "b", "c"]
+        "a,b,c".split(","); -> ["a", "b", "c"]
 
 15. indexOf(substring) -> Returns a Number by finding the index of a substring in the given string. Returns -1 if the substring is not present.
 
-    "hello".indexOf("e"); -> 1
-    "hello".indexOf("z"); -> -1
+        "hello".indexOf("e"); -> 1
+        "hello".indexOf("z"); -> -1
 
 16. contains(substring) -> Returns a Boolean by checking if a substring is present in the given string.
 
-    "hello".contains("ll"); -> true
-    "hello".contains("zz"); -> false
+        "hello".contains("ll"); -> true
+        "hello".contains("zz"); -> false
 
 17. toString() -> Provided for support. Returns the given string.
 
-    "hello".toString(); -> "hello"
+        "hello".toString(); -> "hello"
 
 18. length() -> Returns the length of the string.
 
-    "hello".length(); -> 5
+        "hello".length(); -> 5
 
 __List functions:__
 1. init(list) -> Provided for support. Creates a new List object using an existing List.
@@ -438,178 +438,177 @@ __List functions:__
 
 2. length() -> Returns the length of the list.
 
-    [1, 2, 3].length(); -> 3
+        [1, 2, 3].length(); -> 3
 
 3. append(value) -> Adds a value to the end of the list.
 
-    var a = [1, 2];
-    a.append(3); -> [1, 2, 3]
+        var a = [1, 2];
+        a.append(3); -> [1, 2, 3]
 
 4. insert(value, index) -> Adds a value to the list at index and shifts the remaining list to the right.
 
-    var a = [1, 3];
-    a.insert(2, 1); -> [1, 2, 3]
+        var a = [1, 3];
+        a.insert(2, 1); -> [1, 2, 3]
 
 5. removeAt(index) -> Removes the value in the list at index and shifts the remaining list to the left.
 
-    var a = [1, 2, 3];
-    a.removeAt(1); -> [1, 3]
+        var a = [1, 2, 3];
+        a.removeAt(1); -> [1, 3]
 
 6. get(index) -> Provided for support. Returns the value in the list at index.
 
-    [10, 20, 30].get(1); -> 20
+        [10, 20, 30].get(1); -> 20
 
 7. set(value, index) -> Provided for support. Sets the value at index to given value.
 
-    var a = [1, 2, 3];
-    a.set(9, 1); -> [1, 9, 3]
+        var a = [1, 2, 3];
+        a.set(9, 1); -> [1, 9, 3]
 
 8. contains(value) -> Returns a Boolean by checking if the list contains a value.
 
-    [1, 2, 3].contains(2); -> true
-    [1, 2, 3].contains(5); -> false
+        [1, 2, 3].contains(2); -> true
+        [1, 2, 3].contains(5); -> false
 
 9. indexOf(value) -> Returns the index of a value in the list.
 
-    [10, 20, 30].indexOf(20); -> 1
-    [10, 20, 30].indexOf(40); -> -1
+        [10, 20, 30].indexOf(20); -> 1
+        [10, 20, 30].indexOf(40); -> -1
 
 10. clear() -> Clears the list.
 
-    var a = [1, 2, 3];
-    a.clear(); -> []
+        var a = [1, 2, 3];
+        a.clear(); -> []
 
 11. isEmpty() -> Returns a Boolean by checking if the list is empty.
 
-    [].isEmpty(); -> true
-    [1].isEmpty(); -> false
+        [].isEmpty(); -> true
+        [1].isEmpty(); -> false
 
 12. toString() -> Returns the string representation of the list.
 
-    [1, 2, 3].toString(); -> "[1, 2, 3]"
+        [1, 2, 3].toString(); -> "[1, 2, 3]"
 
 13. clone() -> Shallow copies the list to another list.
 
-    var a = [1, 2, 3];
-    var b = a.clone(); -> [1, 2, 3]
+        var a = [1, 2, 3];
+        var b = a.clone(); -> [1, 2, 3]
 
 14. reverse() -> Reverses the list.
 
-    var a = [1, 2, 3];
-    a.reverse(); -> [3, 2, 1]
+        var a = [1, 2, 3];
+        a.reverse(); -> [3, 2, 1]
 
 15. slice(start, end) -> Returns a chunk of the list from start to end position.
 
-    [1, 2, 3, 4].slice(1, 3); -> [2, 3]
+        [1, 2, 3, 4].slice(1, 3); -> [2, 3]
 
 16. sort() -> Sorts the list. Uses quickSort by default.
 
-    var a = [3, 1, 2];
-    a.sort(); -> [1, 2, 3]
+        var a = [3, 1, 2];
+        a.sort(); -> [1, 2, 3]
 
 17. quickSort() -> Performs QuickSort on the list.
 
-    var a = [3, 1, 2];
-    a.quickSort(); -> [1, 2, 3]
+        var a = [3, 1, 2];
+        a.quickSort(); -> [1, 2, 3]
 
 18. swap(i, j) -> Swaps the position of two values by index.
 
-    var a = [1, 2, 3];
-    a.swap(0, 2); -> [3, 2, 1]
-
+        var a = [1, 2, 3];
+        a.swap(0, 2); -> [3, 2, 1]
 
 __Math functions:__
 1. static sqrt(num) -> Returns the square root of a number.
 
-    Math.sqrt(25); -> 5
+        Math.sqrt(25); -> 5
 
 2. static ln(num) -> Returns the natural log of a number.
 
-    Math.ln(1); -> 0
+        Math.ln(1); -> 0
 
 3. static exp(num) -> Returns e raised to the power of num.
 
-    Math.exp(1); -> 2.718...
+        Math.exp(1); -> 2.718...
 
 4. static pow(a, b) -> Returns a raised to the power of b.
 
-    Math.pow(2, 3); -> 8
+        Math.pow(2, 3); -> 8
 
 5. static round(num, decimals) -> Rounds a number to a given number of decimals.
 
-    Math.round(3.14159, 2); -> 3.14
+        Math.round(3.14159, 2); -> 3.14
 
 6. static round(num) -> Rounds a number to the nearest integer.
 
-    Math.round(2.7); -> 3
+        Math.round(2.7); -> 3
 
 7. static abs(x) -> Returns the absolute value of a number.
 
-    Math.abs(-10); -> 10
+        Math.abs(-10); -> 10
 
 8. static ceil(x) -> Returns the nearest integer greater than a number.
 
-    Math.ceil(2.1); -> 3
+        Math.ceil(2.1); -> 3
 
 9. static floor(x) -> Returns the nearest integer lesser than a number.
 
-    Math.floor(2.9); -> 2
+        Math.floor(2.9); -> 2
 
 10. static max(a, b) -> Returns the greater number between a and b.
 
-    Math.max(4, 7); -> 7
+        Math.max(4, 7); -> 7
 
 11. static min(a, b) -> Returns the lesser number between a and b.
 
-    Math.min(4, 7); -> 4
+        Math.min(4, 7); -> 4
 
 12. static sign(x) -> 1 for positive, -1 for negative, 0 for 0.
 
-    Math.sign(10); -> 1
-    Math.sign(-5); -> -1
-    Math.sign(0); -> 0
+        Math.sign(10); -> 1
+        Math.sign(-5); -> -1
+        Math.sign(0); -> 0
 
 13. static clamp(x, min, max) -> Clamps a number between two bounds.
 
-    Math.clamp(15, 0, 10); -> 10
-    Math.clamp(-5, 0, 10); -> 0
-    Math.clamp(5, 0, 10); -> 5
+        Math.clamp(15, 0, 10); -> 10
+        Math.clamp(-5, 0, 10); -> 0
+        Math.clamp(5, 0, 10); -> 5
 
 14. static mod(a, b) -> Returns the absolute mod of two numbers. Different from % operator.
 
-    Math.mod(-13, 5); -> 2
+        Math.mod(-13, 5); -> 2
 
 15. static toRadians(deg) -> Converts to Radian value.
 
-    Math.toRadians(180); -> 3.14159...
+        Math.toRadians(180); -> 3.14159...
 
 16. static toDegrees(rad) -> Converts to degree value.
 
-    Math.toDegrees(3.14159); -> 180
+        Math.toDegrees(3.14159); -> 180
 
 17. static sin(x) -> Gives sin of an angle in radians.
 
-    Math.sin(Math.toRadians(30)); -> 0.5
+        Math.sin(Math.toRadians(30)); -> 0.5
 
 18. static cos(x) -> Gives cos of an angle in radians.
 
-    Math.cos(Math.toRadians(60)); -> 0.5
+        Math.cos(Math.toRadians(60)); -> 0.5
 
 19. static tan(x) -> Gives tan of an angle in radians.
 
-    Math.tan(Math.toRadians(45)); -> 1
+        Math.tan(Math.toRadians(45)); -> 1
 
 20. static asin(x) -> Gives the angle which would produce the sin value.
 
-    Math.asin(0.5); -> 0.523... (in radians)
+        Math.asin(0.5); -> 0.523... (in radians)
 
 21. static acos(x) -> Gives the angle which would produce the cos value.
 
-    Math.acos(0.5); -> 1.047... (in radians)
+        Math.acos(0.5); -> 1.047... (in radians)
 
 22. static atan(x) -> Gives the angle which would produce the tan value.
 
-    Math.atan(1); -> 0.785... (in radians)
+        Math.atan(1); -> 0.785... (in radians)
 
 
 
@@ -618,62 +617,62 @@ General Utility functions
 
 1. instanceOf(instance, clazz) -> Checks if an object is the instance of a class.
 
-    instanceOf(1, Number); -> true
+        instanceOf(1, Number); -> true
 
 2. isChildOf(child, parent) -> Checks if a class extends another class directly or indirectly.
 
-    isChildOf(NumberFormatError, RuntimeError); -> true
+        isChildOf(NumberFormatError, RuntimeError); -> true
 
 3. isClass(clazz) -> Checks if a value is a class.
 
-    isClass(String); -> true
-    isClass("Instance"); -> false
+        isClass(String); -> true
+        isClass("Instance"); -> false
 
 4. isInstance(inst) -> Checks if a value is an instance.
 
-    isInstance(Boolean); -> true
-    isInstance(true); -> false
+        isInstance(Boolean); -> true
+        isInstance(true); -> false
 
 5. getName(obj) -> Returns the original name of the class or instance.
 
-    getName(Number); -> "Number"
+        getName(Number); -> "Number"
 
 Native Functions
 ==========================
 
 1. asc(string) -> Returns the ascii of the first character in a string.
 
-    asc("A"); -> 65
+        asc("A"); -> 65
 
 2. char(ascii) -> Returns the character corresponding to the given ascii.
 
-    char(65); -> "A"
+        char(65); -> "A"
 
 3. clock() -> Returns the current system time in milliseconds.
 
-    clock(); -> 1.74869322457E9
+        clock(); -> 1.74869322457E9
 
 4. input() -> Takes input from the console and returns it as a string.
 
-    var a = input();
+        var a = input();
 
 5. print(val) -> Prints value to the console.
 
-    print("Hello");
+        print("Hello");
 
 6. println(val) -> Prints value to the console and moves to the next line.
 
-    println("Hello");
+        println("Hello");
 
 7. println() -> Moves to the next line in console.
 
-    println();
+        println();
 
 8. type(obj) -> Returns the type of a class, instance or function.
 
-    type("abc"); -> "String"
-    type(5); -> "Number"
-    type(MyClass); -> "Class"
-    type(MyClass()); -> "Instance"
-    type(func temp(){}); -> "Function"
+        type("abc"); -> "String"
+        type(5); -> "Number"
+        type(MyClass); -> "Class"
+        type(MyClass()); -> "Instance"
+        type(func temp(){}); -> "Function"
 
