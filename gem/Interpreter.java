@@ -144,8 +144,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 				}
 
 				if (leftRaw instanceof String || rightRaw instanceof String) {
-					String leftText = (String) stringify(leftRaw);
-					String rightText = (String) stringify(rightRaw);
+					String leftText = stringify(leftRaw).toString();
+					String rightText = stringify(rightRaw).toString();
 
 					// Trim .0 from double-as-string if desired
 					if (leftText.endsWith(".0")) {
@@ -157,6 +157,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 					return wrapString(leftText + rightText);
 				}
+
+				if(leftRaw instanceof GemInstance leftInst && rightRaw instanceof GemInstance rightInst) {
+					GemFunction function = leftInst.klass.findMethod(mangleName("add", 1));
+					if (function != null) {
+						return stringify(function.bind(leftInst).call(this, List.of(rightInst)));
+					}
+				}
+
 				checkNumberOperands(expr.operator, leftRaw, rightRaw);
 				runtimeError(expr.operator, "Incompatible types for operator " + expr.operator.lexeme, "TypeError");
 		}

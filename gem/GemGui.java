@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
-import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -37,6 +36,7 @@ public class GemGui {
         frame.setSize(1000, 700);
 
         JTextArea editorArea = new JTextArea();
+
         setupTextArea(editorArea);
 
         TerminalPanel terminalPanel = new TerminalPanel();
