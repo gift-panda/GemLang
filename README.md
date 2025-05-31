@@ -670,9 +670,9 @@ Native Functions
 
 8. type(obj) -> Returns the type of a class, instance or function.
 
-        type("abc"); -> "String"
-        type(5); -> "Number"
-        type(MyClass); -> "Class"
-        type(MyClass()); -> "Instance"
-        type(func temp(){}); -> "Function"
+        type("abc"); -> "<inst 'String'>"
+        type(5); -> "<inst 'Number'>"
+        type(MyClass); -> "<class 'MyClass'>"
+        type(MyClass()); -> "<inst 'MyClass'>"
+        type(func temp(){}); -> "<fn 'temp'>"
 
