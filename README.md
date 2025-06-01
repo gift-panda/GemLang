@@ -91,30 +91,30 @@ All binary operators can be overloaded using the 'operator' keyword in the defin
 
 Examples:
 
-        class Example {
-            init(value) {
-                this.value = value;
-            }
-
-            operator +(other) {
-                // Access the instance's value and other operand's value
-                return this.value + other.value;
-            }
-
-            operator *(other) {
-                return this.value * other.value;
-            }
-
-            operator >(other) {
-                return this.value > other.value;
-            }
+    class Example {
+        init(value) {
+            this.value = value;
         }
 
-        var first = Example(10);
-        var second = Example(20);
-        println(first + second); -> 30
-        println(first * second); -> 200
-        println(first > second); -> false
+        operator +(other) {
+            // Access the instance's value and other operand's value
+            return this.value + other.value;
+        }
+
+        operator *(other) {
+            return this.value * other.value;
+        }
+
+        operator >(other) {
+            return this.value > other.value;
+        }
+    }
+
+    var first = Example(10);
+    var second = Example(20);
+    println(first + second); -> 30
+    println(first * second); -> 200
+    println(first > second); -> false
 
 
 Conditionals
