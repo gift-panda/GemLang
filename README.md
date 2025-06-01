@@ -366,11 +366,11 @@ __Number function:__
 
 1. init(Number) -> Provided for support. Creates a new Number using existing Number object
 
-    number = Number(20); -> 20
+    	number = Number(20); -> 20
 
 2. toString() -> Provided for support. Returns the number.
 
-    number.toString(); -> "20"
+    	number.toString(); -> "20"
 
 __Boolean functions:__
 
@@ -378,11 +378,11 @@ __Boolean functions:__
 
 1. init(Boolean) -> Provided for support. Creates a new Boolean using existing Boolean object.
 
-    bool = Boolean(true); -> true
+    	bool = Boolean(true); -> true
 
 2. toString() -> Provided for support. Returns the boolean.
 
-    bool.toString(); -> "true"
+    	bool.toString(); -> "true"
 
 __String functions:__
 
@@ -477,86 +477,86 @@ __String functions:__
 __List functions:__
 1. init(list) -> Provided for support. Creates a new List object using an existing List.
 
-    var a = [1, 2, 3];
-    var b = init(a); -> [1, 2, 3]
+		var a = [1, 2, 3];
+		var b = init(a); -> [1, 2, 3]
 
-2. length() -> Returns the length of the list.
+3. length() -> Returns the length of the list.
 
         [1, 2, 3].length(); -> 3
 
-3. append(value) -> Adds a value to the end of the list.
+4. append(value) -> Adds a value to the end of the list.
 
         var a = [1, 2];
         a.append(3); -> [1, 2, 3]
 
-4. insert(value, index) -> Adds a value to the list at index and shifts the remaining list to the right.
+5. insert(value, index) -> Adds a value to the list at index and shifts the remaining list to the right.
 
         var a = [1, 3];
         a.insert(2, 1); -> [1, 2, 3]
 
-5. removeAt(index) -> Removes the value in the list at index and shifts the remaining list to the left.
+6. removeAt(index) -> Removes the value in the list at index and shifts the remaining list to the left.
 
         var a = [1, 2, 3];
         a.removeAt(1); -> [1, 3]
 
-6. get(index) -> Provided for support. Returns the value in the list at index.
+7. get(index) -> Provided for support. Returns the value in the list at index.
 
         [10, 20, 30].get(1); -> 20
 
-7. set(value, index) -> Provided for support. Sets the value at index to given value.
+8. set(value, index) -> Provided for support. Sets the value at index to given value.
 
         var a = [1, 2, 3];
         a.set(9, 1); -> [1, 9, 3]
 
-8. contains(value) -> Returns a Boolean by checking if the list contains a value.
+9. contains(value) -> Returns a Boolean by checking if the list contains a value.
 
         [1, 2, 3].contains(2); -> true
         [1, 2, 3].contains(5); -> false
 
-9. indexOf(value) -> Returns the index of a value in the list.
+10. indexOf(value) -> Returns the index of a value in the list.
 
         [10, 20, 30].indexOf(20); -> 1
         [10, 20, 30].indexOf(40); -> -1
 
-10. clear() -> Clears the list.
+11. clear() -> Clears the list.
 
         var a = [1, 2, 3];
         a.clear(); -> []
 
-11. isEmpty() -> Returns a Boolean by checking if the list is empty.
+12. isEmpty() -> Returns a Boolean by checking if the list is empty.
 
         [].isEmpty(); -> true
         [1].isEmpty(); -> false
 
-12. toString() -> Returns the string representation of the list.
+13. toString() -> Returns the string representation of the list.
 
         [1, 2, 3].toString(); -> "[1, 2, 3]"
 
-13. clone() -> Shallow copies the list to another list.
+14. clone() -> Shallow copies the list to another list.
 
         var a = [1, 2, 3];
         var b = a.clone(); -> [1, 2, 3]
 
-14. reverse() -> Reverses the list.
+15. reverse() -> Reverses the list.
 
         var a = [1, 2, 3];
         a.reverse(); -> [3, 2, 1]
 
-15. slice(start, end) -> Returns a chunk of the list from start to end position.
+16. slice(start, end) -> Returns a chunk of the list from start to end position.
 
         [1, 2, 3, 4].slice(1, 3); -> [2, 3]
 
-16. sort() -> Sorts the list. Uses quickSort by default.
+17. sort() -> Sorts the list. Uses quickSort by default.
 
         var a = [3, 1, 2];
         a.sort(); -> [1, 2, 3]
 
-17. quickSort() -> Performs QuickSort on the list.
+18. quickSort() -> Performs QuickSort on the list.
 
         var a = [3, 1, 2];
         a.quickSort(); -> [1, 2, 3]
 
-18. swap(i, j) -> Swaps the position of two values by index.
+19. swap(i, j) -> Swaps the position of two values by index.
 
         var a = [1, 2, 3];
         a.swap(0, 2); -> [3, 2, 1]
