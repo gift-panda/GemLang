@@ -42,6 +42,7 @@ class Scanner {
 			keywords.put("finally",	FINALLY);
 			keywords.put("break",  	BREAK);
 			keywords.put("continue", CONTINUE);
+			keywords.put("operator", OPERATOR);
   	}
 
   	Scanner(String source, Path currentSourceFile) {
@@ -74,23 +75,23 @@ class Scanner {
 				case ']': addToken(RIGHT_BRACKET); break;
 				case ',': addToken(COMMA); break;
      	 		case '.': addToken(DOT); break;
-     	 		case '-': addToken(MINUS); break;
-     			case '+': addToken(PLUS); break;
+     	 		case '-': overload(MINUS); break;
+     			case '+': overload(PLUS); break;
      			case ';': addToken(SEMICOLON); break;
 				case ':': addToken(COLON); break;
-     	 		case '*': addToken(STAR); break;
-				case '%': addToken(PERCEN); break;
-				case '\\': addToken(BACKSLASH); break;
+     	 		case '*': overload(STAR); break;
+				case '%': overload(PERCEN); break;
+				case '\\': overload(BACKSLASH); break;
 			case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
-      			case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
-      			case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
-      			case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
+      			case '=': overload(match('=') ? EQUAL_EQUAL : EQUAL); break;
+      			case '<': overload(match('=') ? LESS_EQUAL : LESS); break;
+      			case '>': overload(match('=') ? GREATER_EQUAL : GREATER); break;
 			case '/':
 				  if(match('/')){ // For Comments
 					  while(peek() != '\n' && !isAtEnd()) advance();
 				  }
 				  else
-					  addToken(SLASH);
+					  overload(SLASH);
 				  break;
 			case ' ':
       			case '\r':
@@ -108,6 +109,14 @@ class Scanner {
 				break;
     		}
   	}
+
+	  private void overload(TokenType type){
+		  if(tokens.getLast().type == OPERATOR){
+			  addToken(IDENTIFIER);
+		  }
+		  else
+			  addToken(type);
+	  }
 
 	private char advance(){
 		return source.charAt(current++);
@@ -221,8 +230,6 @@ class Scanner {
 
 		TokenType type = keywords.get(text);
 		if(type == null) type = IDENTIFIER;
-
-
 
 		addToken(type);
 	}

@@ -105,74 +105,91 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 
 		switch (expr.operator.type) {
 			case BANG_EQUAL:
-				return wrapBoolean(!isEqual(leftRaw, rightRaw));
+				try{
+					return overload(leftRaw, rightRaw, "!=", expr.operator);
+				}catch (Exception e) {
+					return wrapBoolean(!isEqual(leftRaw, rightRaw));
+				}
 			case EQUAL_EQUAL:
-				return wrapBoolean(isEqual(leftRaw, rightRaw));
+				try{
+					return overload(leftRaw, rightRaw, "==", expr.operator);
+				}catch (Exception e) {
+					return wrapBoolean(
+							isEqual(leftRaw, rightRaw));
+				}
 		}
 
 		switch (expr.operator.type) {
 			case GREATER:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapBoolean((double) leftRaw > (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapBoolean((double) leftRaw > (double) rightRaw);
+				return overload(leftRaw, rightRaw, ">", expr.operator);
 			case GREATER_EQUAL:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapBoolean((double) leftRaw >= (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapBoolean((double) leftRaw >= (double) rightRaw);
+				return overload(leftRaw, rightRaw, ">=", expr.operator);
 			case LESS:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapBoolean((double) leftRaw < (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapBoolean((double) leftRaw < (double) rightRaw);
+				return overload(leftRaw, rightRaw, "<", expr.operator);
 			case LESS_EQUAL:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapBoolean((double) leftRaw <= (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapBoolean((double) leftRaw <= (double) rightRaw);
+				return overload(leftRaw, rightRaw, "<=", expr.operator);
 			case MINUS:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapNumber((double) leftRaw - (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapNumber((double) leftRaw - (double) rightRaw);
+				return overload(leftRaw, rightRaw, "-", expr.operator);
 			case PERCEN:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapNumber((double) leftRaw % (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapNumber((double) leftRaw % (double) rightRaw);
+				return overload(leftRaw, rightRaw, "%", expr.operator);
 			case BACKSLASH:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapNumber((double) ((int) (double) leftRaw / (int) (double) rightRaw));
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapNumber((double) ((int) (double) leftRaw / (int) (double) rightRaw));
+				return overload(leftRaw, rightRaw, "\\", expr.operator);
 			case SLASH:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapNumber((double) leftRaw / (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapNumber((double) leftRaw / (double) rightRaw);
+				return overload(leftRaw, rightRaw, "/", expr.operator);
 			case STAR:
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				return wrapNumber((double) leftRaw * (double) rightRaw);
+				if(checkNumberOperands(expr.operator, leftRaw, rightRaw))
+					return wrapNumber((double) leftRaw * (double) rightRaw);
+				return overload(leftRaw, rightRaw, "*", expr.operator);
 			case PLUS:
 				if (leftRaw instanceof Double && rightRaw instanceof Double) {
 					return wrapNumber((double) leftRaw + (double) rightRaw);
 				}
-
 				if (leftRaw instanceof String || rightRaw instanceof String) {
 					String leftText = stringify(leftRaw).toString();
 					String rightText = stringify(rightRaw).toString();
 
-					// Trim .0 from double-as-string if desired
 					if (leftText.endsWith(".0")) {
 						leftText = leftText.substring(0, leftText.length() - 2);
 					}
 					if (rightText.endsWith(".0")) {
 						rightText = rightText.substring(0, rightText.length() - 2);
 					}
-
 					return wrapString(leftText + rightText);
 				}
-
-				if(leftRaw instanceof GemInstance leftInst && rightRaw instanceof GemInstance rightInst) {
-					GemFunction function = leftInst.klass.findMethod(mangleName("add", 1));
-					if (function != null) {
-						return stringify(function.bind(leftInst).call(this, List.of(rightInst)));
-					}
-				}
-
-				checkNumberOperands(expr.operator, leftRaw, rightRaw);
-				runtimeError(expr.operator, "Incompatible types for operator " + expr.operator.lexeme, "TypeError");
+				return overload(leftRaw, rightRaw, "+", expr.operator);
 		}
-
 		return null;
 	}
 
-	public static void runtimeError(Token token, String msg, String type) {
+	public Object overload(Object left, Object right, String operator, Token token) {
+		if(left instanceof GemInstance leftInst && right instanceof GemInstance rightInst) {
+			GemFunction function = leftInst.klass.findMethod(mangleName(operator, 1));
+			if (function != null) {
+				return stringify(function.bind(leftInst).call(this, List.of(rightInst)));
+			}
+		}
+
+		runtimeError(token, "Incompatible operands for operation " + operator + ", received " + typeOf(left) + " and " +  typeOf(right), "TypeError");
+		throw new RuntimeException();
+	}
+
+	public static void runtimeError(Token token, String msg, String type){
 		GemInstance errorInstance = new GemInstance(errorClass);
         StringBuilder msgBuilder = new StringBuilder();
 		msgBuilder.append("\t").append("at (").append(token.sourceFile.getFileName()).append(":").append(token.line).append(")");
@@ -308,12 +325,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		runtimeError(operator, "Operand expected to be a number, received " + typeOf(operand), "TypeError");
 	}
 
-	private void checkNumberOperands(Token operator, Object left, Object right) {
+	private boolean checkNumberOperands(Token operator, Object left, Object right) {
 		left = unwrap(left);
 		right = unwrap(right);
-		if (left instanceof Double && right instanceof Double) return;
+		if (left instanceof Double && right instanceof Double) return true;
 
-		runtimeError(operator, "Operands expected to be numbers, received " + typeOf(left) + " and " +  typeOf(right), "TypeError");
+		return false;
+
+		//runtimeError(operator, "Operands expected to be numbers, received " + typeOf(left) + " and " +  typeOf(right), "TypeError");
 	}
 	void interpret(List<Stmt> statements){
 		try{
@@ -754,6 +773,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void>{
 		if(stmt.value != null){
 			value = evaluate(stmt.value);
 		}
+		//System.out.println("Returning `" + unwrap(value) + "`");
 
 		throw new Return(value);
 	}

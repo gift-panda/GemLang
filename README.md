@@ -9,7 +9,7 @@ OR
 Run the Interpreter.jar from the terminal, passing the path to a .gem file for execution.
 
 Declarations
-=================
+===================
     
     var name = value;
 
@@ -21,7 +21,7 @@ also decomposed into
     name = value;
 
 Operators
-================
+====================
 
 Gem operator heirarchy is as follows:
 
@@ -72,9 +72,53 @@ Boolean operatos include "and" and "or"
     x and y; -> Boolean and, has higer precedence
     x or y; -> Boolean or, has lower precedence
 
+Operator Overloads
+=====================
+
+Gem translates: value1 **symbol** value2 as value1.**symbol**(value2).
+
+All binary operators can be overloaded using the 'operator' keyword in the defination of the method.
+
+	class ClassName {
+        operator SYMBOL(parameter) {
+            // implementation using this and parameter
+            return some_value;
+        }
+    }
+
+**operator** keyord signals an overload.
+**SYMBOL** is the operator to overload.
+
+Examples:
+
+        class Example {
+            init(value) {
+                this.value = value;
+            }
+
+            operator +(other) {
+                // Access the instance's value and other operand's value
+                return this.value + other.value;
+            }
+
+            operator *(other) {
+                return this.value * other.value;
+            }
+
+            operator >(other) {
+                return this.value > other.value;
+            }
+        }
+
+        var first = Example(10);
+        var second = Example(20);
+        println(first + second); -> 30
+        println(first * second); -> 200
+        println(first > second); -> false
+
 
 Conditionals
-=================
+=====================
 
 Gem has only one type of branching control structure.
 

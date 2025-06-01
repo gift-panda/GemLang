@@ -90,8 +90,14 @@ public class Gem {
 		Scanner sc = new Scanner(source, currentSourceFile);
 		List<Token> tokens = sc.scanTokens();
 
+		//System.out.println(tokens);
+		//System.exit(0);
+
 		Parser parser = new Parser(tokens, currentSourceFile);
 		List<Stmt> statements = parser.parse();
+
+		//System.out.println(((Expr.Binary)(((Expr.Call)(((Stmt.Expression)statements.getLast()).expression)).arguments).getFirst()).right);
+		//System.exit(0);
 
 		if (hadError) {
 			return;

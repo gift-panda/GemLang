@@ -388,6 +388,9 @@ class Parser{
 		List<Stmt.Function> staticMethods = new ArrayList<>();
 		List<Stmt.Var> staticFields = new ArrayList<>();
 		while(!check(RIGHT_BRACE) && !isAtEnd()){
+			if(match(OPERATOR)){
+				//ignore
+			}
 			if(match(VAR)){
 				staticFields.add(varDeclaration());
 			}
