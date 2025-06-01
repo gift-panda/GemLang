@@ -43,7 +43,7 @@ Unary operators include "+" and "-"
     +x; -> No-op 
     -y; -> Negates a number
 
-Multiplicative operators include "*", "/", "\", "%"
+Multiplicative operators include "*", "/", "\\", "%"
 
     x * y; -> Multiplication
     x / y; -> Division
